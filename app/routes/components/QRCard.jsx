@@ -1,27 +1,31 @@
 import { ActionList, BlockStack, Button, Card, Image, InlineGrid, InlineStack, Popover, Spinner, Text } from "@shopify/polaris";
 import QRCode from "qrcode";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import SelectedContext from "../contexts/SelectedContext";
 import { QRCodeStyling } from "qr-code-styling-node/lib/qr-code-styling.common.js";
+// import { authenticate } from "../../shopify.server";
+// import { getQRCode } from "../../models/QRCode.server";
+import { useLoaderData } from "@remix-run/react";
+import TargetContext from "../contexts/TargetContext";
+import CustomizationContext from "../contexts/CustomizationContext";
 
 export default function QRCard() {
     const [isLoading, setIsLoading] = useState(true);
     const [imgExt, setImgExt] = useState("JPG");
     const [visible, setVisible] = useState(false);
-    const selectedContext = useContext(SelectedContext);
+    const targetContext = useContext(TargetContext);
+    const customizationContext = useContext(CustomizationContext);
     const ref = useRef(null);
 
     useEffect(() => {
         const init = async () => {
-            if (!selectedContext) {
+            if (!targetContext || !customizationContext) {
                 console.log("Loading...")
             } else {
-                // console.log(selectedContext);
                 setIsLoading(false);
             }
         }
         init();
-    }, [selectedContext])
+    }, [targetContext, customizationContext])
 
     const qrCode = new QRCodeStyling({
         width: 200,
@@ -39,22 +43,23 @@ export default function QRCard() {
         qrCode.download({ name: "qr", extension: imgExt })
     }
 
-    const {
-        singleQRCodeData,
+    const { qrDestination } = targetContext;
+
+    const {         
         convertedForegroundColor,
         convertedBackgroundColor,
         selectedPattern,
         selectedEye,
-        file
-    } = selectedContext;
+        file 
+    } = customizationContext
 
     useEffect(() => {
         qrCode.append(ref.current);
-    }, [singleQRCodeData, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye, file]);
+    }, [qrDestination, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye, file]);
 
     useEffect(() => {
         qrCode.update({
-            data: singleQRCodeData,
+            data: qrDestination,
             image: file ? window.URL.createObjectURL(file) : null,
             dotsOptions: {
                 color: convertedForegroundColor,
@@ -67,7 +72,7 @@ export default function QRCard() {
                 type: selectedEye
             }
         });
-    }, [singleQRCodeData, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye, file]);
+    }, [qrDestination, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye, file]);
 
     const handleImageExtension = useCallback(
         (newImgExt) => {
@@ -77,6 +82,16 @@ export default function QRCard() {
         },
         [],
     );
+
+    // const handleGetData = async () => {
+    //     const data = await getQRCode("placeholder");
+    //     if (data) {
+    //         console.log("Title", data.title);
+    //         console.log("Foreground color", data.fgColor);
+    //     } else {
+    //         console.log("QR code not found.")
+    //     }
+    // }
 
     return (
         <Card>
@@ -123,6 +138,8 @@ export default function QRCard() {
                             ]}
                         />
                     </Popover>
+                    <Text>
+                    </Text>
                 </InlineStack>
             </BlockStack>
         </Card >

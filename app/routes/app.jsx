@@ -19,10 +19,18 @@ export default function App() {
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <NavMenu>
-        <Link to="/app" rel="home">
+        <Link to="/app/home">
           Home
         </Link>
-        <Link to="/app/list">Your QR codes</Link>
+        <Link to="/app/static">
+          Static QR codes
+        </Link>
+        <Link to="/app/dynamic">
+          Dynamic QR codes
+        </Link>
+        <Link to="/app/list">
+        Your QR codes
+        </Link>
       </NavMenu>
       <Outlet />
     </AppProvider>

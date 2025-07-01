@@ -15,7 +15,7 @@ import {
     Button,
 } from "@shopify/polaris";
 import {NoteIcon} from '@shopify/polaris-icons';
-import SelectedContext from "../contexts/SelectedContext";
+import CustomizationContext from "../contexts/CustomizationContext";
 
 const colorPickerStyles = {
     width: 50,
@@ -55,18 +55,18 @@ const selectedPatternPickerStyles = {
 export default function QRCustomizations() {
     const [isLoading, setIsLoading] = useState(true);
     const [visible, setVisible] = useState(false);
-    const selectedContext = useContext(SelectedContext);
+    const customizationContext = useContext(CustomizationContext);
 
     useEffect(() => {
         const init = async () => {
-            if (!selectedContext) {
+            if (!customizationContext) {
                 console.log("Loading...")
             } else {
                 setIsLoading(false);
             }
         }
         init();
-    }, [selectedContext])
+    }, [customizationContext])
 
     const {
         selectedForegroundColor,
@@ -83,7 +83,7 @@ export default function QRCustomizations() {
         setSelectedEye,
         file,
         setFile
-    } = selectedContext;
+    } = customizationContext;
 
     // const formattedRGBValue = hsbToRgb(selectedColor);
     const colorPickerRef = useRef(null);
@@ -131,8 +131,6 @@ export default function QRCustomizations() {
     const handleImageRemove = () => {
         setFile(null);
     }
-
-    // const errorMessageImageDrop = hasError &&
 
     const fileUpload = !file && <DropZone.FileUpload actionTitle="Browse an image to upload" actionHint={`or drag and drop an image here to upload. Accepts image in .jpg or .png format.`}/>;
     const uploadedFile = file && (
@@ -238,32 +236,32 @@ export default function QRCustomizations() {
                         <InlineStack gap="500">
                             <Tooltip content="Square" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedPattern == "square" ? "selected" : ""}`} onClick={() => handlePatternChange("square")} style={selectedPattern == "square" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/square-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/square-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                             <Tooltip content="Rounded" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedPattern == "rounded" ? "selected" : ""}`} onClick={() => handlePatternChange("rounded")} style={selectedPattern == "rounded" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/rounded-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/rounded-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                             <Tooltip content="Extra rounded" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedPattern == "extra-rounded" ? "selected" : ""}`} onClick={() => handlePatternChange("extra-rounded")} style={selectedPattern == "extra-rounded" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/extra-rounded-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/extra-rounded-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                             <Tooltip content="Dots" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedPattern == "dots" ? "selected" : ""}`} onClick={() => handlePatternChange("dots")} style={selectedPattern == "dots" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/dots-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/dots-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                             <Tooltip content="Classy rounded" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedPattern == "classy-rounded" ? "selected" : ""}`} onClick={() => handlePatternChange("classy-rounded")} style={selectedPattern == "classy-rounded" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/classy-rounded-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/classy-rounded-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                             <Tooltip content="Classy" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedPattern == "classy" ? "selected" : ""}`} onClick={() => handlePatternChange("classy")} style={selectedPattern == "classy" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/classy-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/classy-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                         </InlineStack>
@@ -275,17 +273,17 @@ export default function QRCustomizations() {
                         <InlineStack gap="500">
                             <Tooltip content="Square" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedEye == "square" ? "selected" : ""}`} onClick={() => handleEyeChange("square")} style={selectedEye == "square" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/square-eye-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/square-eye-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                             <Tooltip content="Rounded" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedEye == "rounded" ? "selected" : ""}`} onClick={() => handleEyeChange("rounded")} style={selectedEye == "rounded" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/rounded-eye-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/rounded-eye-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                             <Tooltip content="Extra rounded" dismissOnMouseOut preferredPosition="below">
                                 <div className={`body-pattern-item ${selectedEye == "extra-rounded" ? "selected" : ""}`} onClick={() => handleEyeChange("extra-rounded")} style={selectedEye == "extra-rounded" ? selectedPatternPickerStyles : patternPickerStyles}>
-                                    <img src="./qr-type/extra-rounded-eye-icon.png" width="100%" height="100%" objectFit="contain"></img>
+                                    <img src="../qr-type/extra-rounded-eye-icon.png" width="100%" height="100%" objectFit="contain"></img>
                                 </div>
                             </Tooltip>
                         </InlineStack>

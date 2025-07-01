@@ -22,11 +22,9 @@ import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import Homepage from "./components/Homepage";
 import QRCard from "./components/QRCard";
-import SelectedContextProvider from "./contexts/SelectedContextProvider";
 import QRSettings from "./components/QRSettings";
 import QRCustomizations from "./components/QRCustomizations";
 import QRTarget from "./components/QRTarget";
-import SelectedContext from "./contexts/SelectedContext";
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);

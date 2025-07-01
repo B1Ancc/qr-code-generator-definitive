@@ -1,11 +1,9 @@
 import { hsbToHex } from "@shopify/polaris";
 import { createContext, useState } from "react";
 
-const SelectedContext = createContext();
+const CustomizationContext = createContext();
 
-export const SelectedProvider = ({ children }) => {
-    const [selected, setSelected] = useState("homepage");
-    const [singleQRCodeData, setSingleQRCodeData] = useState("");
+export const CustomizationProvider = ({ children }) => {
     const [selectedForegroundColor, setSelectedForegroundColor] = useState(
         {
             hue: 0,
@@ -20,16 +18,11 @@ export const SelectedProvider = ({ children }) => {
         });
     const [convertedForegroundColor, setConvertedForegroundColor] = useState(hsbToHex(selectedForegroundColor))
     const [convertedBackgroundColor, setConvertedBackgroundColor] = useState(hsbToHex(selectedBackgroundColor))
-    const [marginValue, setMarginValue] = useState(15);
     const [selectedPattern, setSelectedPattern] = useState("square");
     const [selectedEye, setSelectedEye] = useState("square");
     const [file, setFile] = useState();
 
     const value = {
-        selected,
-        setSelected,
-        singleQRCodeData,
-        setSingleQRCodeData,
         selectedForegroundColor,
         setSelectedForegroundColor,
         selectedBackgroundColor,
@@ -38,8 +31,6 @@ export const SelectedProvider = ({ children }) => {
         setConvertedForegroundColor,
         convertedBackgroundColor,
         setConvertedBackgroundColor,
-        marginValue,
-        setMarginValue,
         selectedPattern,
         setSelectedPattern,
         selectedEye,
@@ -49,10 +40,10 @@ export const SelectedProvider = ({ children }) => {
     };
 
     return (
-        <SelectedContext.Provider value={value}>
+        <CustomizationContext.Provider value={value}>
             {children}
-        </SelectedContext.Provider>
+        </CustomizationContext.Provider>
     )
 }
 
-export default SelectedContext;
+export default CustomizationContext;
