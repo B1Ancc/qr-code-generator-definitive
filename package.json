@@ -4,6 +4,7 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "shopify app dev --tunnel-url=https://apparent-alive-ibex.ngrok-free.app:3000",
+    "ngrok": "ngrok http 3000 --url https://apparent-alive-ibex.ngrok-free.app",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",
     "deploy": "shopify app deploy",
@@ -41,6 +42,7 @@
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "uuid": "^11.1.0",
     "vite-tsconfig-paths": "^5.0.1"
   },
   "devDependencies": {
