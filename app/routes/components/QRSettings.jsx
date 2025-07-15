@@ -21,7 +21,7 @@ import {
 } from "@shopify/polaris";
 import { SaveBar } from "@shopify/app-bridge-react";
 import { useSubmit } from "@remix-run/react";
-import SettingsContext from "../contexts/QRSettingsContext";
+import QRSettingsContext from "../contexts/QRSettingsContext";
 import GlobalSaveBar from "./GlobalSaveBar";
 import Loading from "./Loading";
 
@@ -35,20 +35,20 @@ export default function QRSettings({ settingsData }) {
     });
     const formattedValue = selectedDate.toISOString().slice(0, 10);
     const datePickerRef = useRef(null);
-    const settingsContext = useContext(SettingsContext);
+    const qrSettingsContext = useContext(QRSettingsContext);
 
     useEffect(() => {
         const init = async () => {
-            if (!settingsContext) {
+            if (!qrSettingsContext) {
                 console.log("Loading...")
             } else {
                 setIsLoading(false);
             }
         }
         init();
-    }, [settingsContext])
+    }, [qrSettingsContext])
 
-    const { qrName, setQRName, initialQRName, setInitialQRName } = settingsContext;
+    const { qrName, setQRName, initialQRName, setInitialQRName } = qrSettingsContext;
 
     useEffect(() => {
         const init = async () => {

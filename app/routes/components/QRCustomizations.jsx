@@ -15,7 +15,7 @@ import {
     Button,
 } from "@shopify/polaris";
 import {NoteIcon} from '@shopify/polaris-icons';
-import CustomizationContext from "../contexts/QRCustomizationsContext";
+import QRCustomizationsContext from "../contexts/QRCustomizationsContext";
 import GlobalSaveBar from "./GlobalSaveBar";
 
 const colorPickerStyles = {
@@ -56,18 +56,18 @@ const selectedPatternPickerStyles = {
 export default function QRCustomizations({ customData }) {
     const [isLoading, setIsLoading] = useState(true);
     const [visible, setVisible] = useState(false);
-    const customizationContext = useContext(CustomizationContext);
+    const qrCustomizationsContext = useContext(QRCustomizationsContext);
 
     useEffect(() => {
         const init = async () => {
-            if (!customizationContext) {
+            if (!qrCustomizationsContext) {
                 console.log("Loading...")
             } else {
                 setIsLoading(false);
             }
         }
         init();
-    }, [customizationContext])
+    }, [qrCustomizationsContext])
 
     const {
         selectedForegroundColor,
@@ -84,7 +84,7 @@ export default function QRCustomizations({ customData }) {
         setSelectedEye,
         file,
         setFile
-    } = customizationContext;
+    } = qrCustomizationsContext;
 
     useEffect(() => {
         const init = async () => {

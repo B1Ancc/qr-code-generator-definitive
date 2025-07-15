@@ -1,39 +1,39 @@
 import { useFetcher, useSubmit } from "@remix-run/react";
 import { SaveBar } from "@shopify/app-bridge-react";
 import { useContext, useEffect, useState } from "react";
-import TargetContext from "../contexts/TargetContext";
-import SettingsContext from "../contexts/SettingsContext";
-import CustomizationContext from "../contexts/CustomizationContext";
+import QRTargetContext from "../contexts/QRTargetContext";
+import QRSettingsContext from "../contexts/QRSettingsContext";
+import QRCustomizationsContext from "../contexts/QRCustomizationsContext";
 
 export default function GlobalSaveBar() {
     const [isLoading, setIsLoading] = useState(true);
-    const targetContext = useContext(TargetContext);
-    const settingsContext = useContext(SettingsContext);
-    const customizationContext = useContext(CustomizationContext);
+    const qrTargetContext = useContext(QRTargetContext);
+    const qrSettingsContext = useContext(QRSettingsContext);
+    const qrCustomizationsContext = useContext(QRCustomizationsContext);
 
     useEffect(() => {
         const init = async () => {
-            if (!targetContext || !settingsContext || !customizationContext) {
+            if (!qrTargetContext || !qrSettingsContext || !qrCustomizationsContext) {
                 console.log("Loading...")
             } else {
                 setIsLoading(false);
             }
         }
         init();
-    }, [targetContext, settingsContext, customizationContext])
+    }, [qrTargetContext, qrSettingsContext, qrCustomizationsContext])
 
     const {
         selected,
         qrDestination,
         setQRDestination
-    } = targetContext;
+    } = qrTargetContext;
 
     const {
         qrName,
         setQRName,
         initialQRName,
         setInitialQRName
-    } = settingsContext;
+    } = qrSettingsContext;
 
     const {
         convertedForegroundColor,
@@ -44,7 +44,7 @@ export default function GlobalSaveBar() {
         setSelectedPattern,
         selectedEye,
         setSelectedEye,
-    } = customizationContext;
+    } = qrCustomizationsContext;
 
     const [formData, setFormData] = useState({
         qrDestination: qrDestination,

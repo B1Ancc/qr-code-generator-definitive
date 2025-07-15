@@ -1,7 +1,7 @@
 import { BlockStack, Button, Card, Divider, Image, InlineGrid, InlineStack, Link, Text, TextField, Thumbnail, Tooltip, Spinner } from "@shopify/polaris"
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
-import TargetContext from "../contexts/QRTargetContext";
+import QRTargetContext from "../contexts/QRTargetContext";
 import GlobalSaveBar from "./GlobalSaveBar";
 import Loading from "./Loading";
 
@@ -21,20 +21,20 @@ export default function QRTarget() {
     const [customText, setCustomText] = useState("");
     const [customWifiAddress, setCustomWifiAddress] = useState("");
     const [customWifiPassword, setCustomWifiPassword] = useState("");
-    const targetContext = useContext(TargetContext);
+    const qrTargetContext = useContext(QRTargetContext);
 
     useEffect(() => {
         const init = async () => {
-            if (!targetContext) {
+            if (!qrTargetContext) {
                 console.log("Loading...")
             } else {
                 setIsLoading(false);
             }
         }
         init();
-    }, [targetContext])
+    }, [qrTargetContext])
 
-    const { selected, setSelected, qrDestination, setQRDestination } = targetContext;
+    const { selected, setSelected, qrDestination, setQRDestination } = qrTargetContext;
 
     useEffect(() => {
         const { shop } = shopify.config;

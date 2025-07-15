@@ -1,8 +1,8 @@
 import { createContext, useState } from "react";
 
-const SettingsContext = createContext();
+const QRSettingsContext = createContext();
 
-export const SettingsProvider = ({ children }) => {
+export const QRSettingsProvider = ({ children }) => {
     const [qrName, setQRName] = useState("");
     const [initialQRName, setInitialQRName] = useState("");
 
@@ -14,10 +14,10 @@ export const SettingsProvider = ({ children }) => {
     };
 
     return (
-        <SettingsContext.Provider value={value}>
+        <QRSettingsContext.Provider value={value}>
             {children}
-        </SettingsContext.Provider>
+        </QRSettingsContext.Provider>
     )
 }
 
-export default SettingsContext;
+export default QRSettingsContext;

@@ -1,9 +1,9 @@
 import { hsbToHex } from "@shopify/polaris";
 import { createContext, useState } from "react";
 
-const CustomizationContext = createContext();
+const QRCustomizationsContext = createContext();
 
-export const CustomizationProvider = ({ children }) => {
+export const QRCustomizationsProvider = ({ children }) => {
     const [selectedForegroundColor, setSelectedForegroundColor] = useState(
         {
             hue: 0,
@@ -40,10 +40,10 @@ export const CustomizationProvider = ({ children }) => {
     };
 
     return (
-        <CustomizationContext.Provider value={value}>
+        <QRCustomizationsContext.Provider value={value}>
             {children}
-        </CustomizationContext.Provider>
+        </QRCustomizationsContext.Provider>
     )
 }
 
-export default CustomizationContext;
+export default QRCustomizationsContext;

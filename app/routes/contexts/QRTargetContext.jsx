@@ -1,8 +1,8 @@
 import { createContext, useState } from "react";
 
-const TargetContext = createContext();
+const QRTargetContext = createContext();
 
-export const TargetProvider = ({ children }) => {
+export const QRTargetProvider = ({ children }) => {
     const [selected, setSelected] = useState("Homepage");
     const [qrDestination, setQRDestination] = useState("");
 
@@ -14,10 +14,10 @@ export const TargetProvider = ({ children }) => {
     };
 
     return (
-        <TargetContext.Provider value={value}>
+        <QRTargetContext.Provider value={value}>
             {children}
-        </TargetContext.Provider>
+        </QRTargetContext.Provider>
     )
 }
 
-export default TargetContext;
+export default QRTargetContext;

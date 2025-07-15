@@ -5,28 +5,28 @@ import { QRCodeStyling } from "qr-code-styling-node/lib/qr-code-styling.common.j
 // import { authenticate } from "../../shopify.server";
 // import { getQRCode } from "../../models/QRCode.server";
 import { useLoaderData } from "@remix-run/react";
-import TargetContext from "../contexts/QRTargetContext";
-import CustomizationContext from "../contexts/QRCustomizationsContext";
+import QRTargetContext from "../contexts/QRTargetContext";
+import QRCustomizationsContext from "../contexts/QRCustomizationsContext";
 
 export default function QRCard() {
     const [isLoading, setIsLoading] = useState(true);
     const [imgExt, setImgExt] = useState("JPG");
     const [visible, setVisible] = useState(false);
-    const targetContext = useContext(TargetContext);
-    const customizationContext = useContext(CustomizationContext);
+    const qrTargetContext = useContext(QRTargetContext);
+    const qrCustomizationsContext = useContext(QRCustomizationsContext);
     const extensions = ['JPG', 'PNG', 'SVG', 'WEBP'];
     const ref = useRef(null);
 
     useEffect(() => {
         const init = async () => {
-            if (!targetContext || !customizationContext) {
+            if (!qrTargetContext || !qrCustomizationsContext) {
                 console.log("Loading...")
             } else {
                 setIsLoading(false);
             }
         }
         init();
-    }, [targetContext, customizationContext])
+    }, [qrTargetContext, qrCustomizationsContext])
 
     const qrCode = new QRCodeStyling({
         width: 200,
@@ -44,13 +44,15 @@ export default function QRCard() {
         qrCode.download({ name: "qr", extension: imgExt })
     }
 
+    const { qrDestination } = qrTargetContext;
+
     const {
         convertedForegroundColor,
         convertedBackgroundColor,
         selectedPattern,
         selectedEye,
         file
-    } = customizationContext
+    } = qrCustomizationsContext
 
     useEffect(() => {
         qrCode.append(ref.current);
