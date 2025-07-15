@@ -1,27 +1,32 @@
 import { ActionList, BlockStack, Button, Card, Image, InlineGrid, InlineStack, Popover, Spinner, Text } from "@shopify/polaris";
 import QRCode from "qrcode";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import SelectedContext from "../contexts/SelectedContext";
 import { QRCodeStyling } from "qr-code-styling-node/lib/qr-code-styling.common.js";
+// import { authenticate } from "../../shopify.server";
+// import { getQRCode } from "../../models/QRCode.server";
+import { useLoaderData } from "@remix-run/react";
+import QRTargetContext from "../contexts/QRTargetContext";
+import QRCustomizationsContext from "../contexts/QRCustomizationsContext";
 
 export default function QRCard() {
     const [isLoading, setIsLoading] = useState(true);
     const [imgExt, setImgExt] = useState("JPG");
     const [visible, setVisible] = useState(false);
-    const selectedContext = useContext(SelectedContext);
+    const qrTargetContext = useContext(QRTargetContext);
+    const qrCustomizationsContext = useContext(QRCustomizationsContext);
+    const extensions = ['JPG', 'PNG', 'SVG', 'WEBP'];
     const ref = useRef(null);
 
     useEffect(() => {
         const init = async () => {
-            if (!selectedContext) {
+            if (!qrTargetContext || !qrCustomizationsContext) {
                 console.log("Loading...")
             } else {
-                // console.log(selectedContext);
                 setIsLoading(false);
             }
         }
         init();
-    }, [selectedContext])
+    }, [qrTargetContext, qrCustomizationsContext])
 
     const qrCode = new QRCodeStyling({
         width: 200,
@@ -39,22 +44,23 @@ export default function QRCard() {
         qrCode.download({ name: "qr", extension: imgExt })
     }
 
+    const { qrDestination } = qrTargetContext;
+
     const {
-        singleQRCodeData,
         convertedForegroundColor,
         convertedBackgroundColor,
         selectedPattern,
         selectedEye,
         file
-    } = selectedContext;
+    } = qrCustomizationsContext
 
     useEffect(() => {
         qrCode.append(ref.current);
-    }, [singleQRCodeData, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye, file]);
+    }, [qrDestination, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye, file]);
 
     useEffect(() => {
         qrCode.update({
-            data: singleQRCodeData,
+            data: qrDestination,
             image: file ? window.URL.createObjectURL(file) : null,
             dotsOptions: {
                 color: convertedForegroundColor,
@@ -67,16 +73,25 @@ export default function QRCard() {
                 type: selectedEye
             }
         });
-    }, [singleQRCodeData, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye, file]);
+    }, [qrDestination, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye, file]);
 
     const handleImageExtension = useCallback(
         (newImgExt) => {
             setImgExt(newImgExt);
             setVisible(false);
-            console.log(imgExt);
         },
         [],
     );
+
+    // const handleGetData = async () => {
+    //     const data = await getQRCode("placeholder");
+    //     if (data) {
+    //         console.log("Title", data.title);
+    //         console.log("Foreground color", data.fgColor);
+    //     } else {
+    //         console.log("QR code not found.")
+    //     }
+    // }
 
     return (
         <Card>
@@ -103,26 +118,14 @@ export default function QRCard() {
                     >
                         <ActionList
                             actionRole="menuitem"
-                            items={[
-                                {
-                                    content: 'JPG',
-                                    onAction: () => handleImageExtension('JPG'),
-                                },
-                                {
-                                    content: 'PNG',
-                                    onAction: () => handleImageExtension('PNG'),
-                                },
-                                {
-                                    content: 'SVG',
-                                    onAction: () => handleImageExtension('SVG'),
-                                },
-                                {
-                                    content: 'WEBP',
-                                    onAction: () => handleImageExtension('WEBP'),
-                                }
-                            ]}
+                            items={extensions.map((ext) => ({
+                                content: ext,
+                                onAction: () => handleImageExtension(ext),
+                            }))}
                         />
                     </Popover>
+                    <Text>
+                    </Text>
                 </InlineStack>
             </BlockStack>
         </Card >

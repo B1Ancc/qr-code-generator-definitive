@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { BlockStack, Card, DataTable, FooterHelp, Grid, InlineGrid, InlineStack, Page, Text } from "@shopify/polaris";
+=======
+import { Card, DataTable, FooterHelp, Page, Text } from "@shopify/polaris";
+>>>>>>> develop
 import Footer from "./components/Footer";
 import { authenticate } from "../shopify.server";
 import { useLoaderData } from "@remix-run/react";
@@ -9,6 +13,7 @@ export const loader = async ({ request }) => {
     const { shop } = session;
     const data = await db.qRCode.findMany(
         {
+<<<<<<< HEAD
             take: 5,
             orderBy: {
                 createdAt: 'desc',
@@ -18,6 +23,13 @@ export const loader = async ({ request }) => {
                 title: true,
                 endpoint: true,
                 type: true,
+=======
+            where: { shop },
+            select: {
+                title: true,
+                destination: true,
+                pattern: true,
+>>>>>>> develop
                 createdAt: true,
             }
         }
@@ -27,6 +39,7 @@ export const loader = async ({ request }) => {
 
 export default function Home() {
     const rows = useLoaderData();
+<<<<<<< HEAD
     const row = rows.map(({ title, endpoint, createdAt }) => {
         const date = new Date(createdAt);
         const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
@@ -34,10 +47,14 @@ export default function Home() {
         return [title, endpoint, formattedDate];
     }
     );
+=======
+    const row = rows.map((single) => [single.title, single.destination, single.pattern, single.createdAt]);
+>>>>>>> develop
 
     return (
         <>
             <Page title="QR Codes Generator Definitive" subtitle="Create a QR code instantly. Access them whenever you want, wherever you go.">
+<<<<<<< HEAD
                 <BlockStack gap="500">
                     <Card>
                         <Text variant="headingMd" as="h6">
@@ -85,6 +102,30 @@ export default function Home() {
                         </Grid.Cell>
                     </Grid>
                 </BlockStack>
+=======
+                <Card>
+                    <Text variant="headingMd" as="h6">
+                        Recent created QR codes
+                    </Text>
+                    <DataTable
+                        columnContentTypes={[
+                            'text',
+                            'text',
+                            'text',
+                            'text'
+                        ]}
+                        headings={[
+                            'Name',
+                            'Destination',
+                            'Type',
+                            'Scans',
+                        ]}
+
+                        rows={row}
+                    >
+                    </DataTable>
+                </Card>
+>>>>>>> develop
                 <Footer />
             </Page>
         </>

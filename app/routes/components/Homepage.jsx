@@ -5,12 +5,12 @@ import QRSettings from "./QRSettings";
 import QRCustomizations from "./QRCustomizations";
 import QRTarget from "./QRTarget";
 
-export default function Homepage() {
+export default function Homepage({ qrData }) {
     return (
         <BlockStack gap="200">
             <QRTarget />
-            <QRSettings />
-            <QRCustomizations />
+            <QRSettings settingsData={qrData} />
+            <QRCustomizations customData={qrData} />
         </BlockStack>
     );
 }

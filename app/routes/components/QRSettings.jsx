@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
     Page,
     Layout,
@@ -19,10 +19,15 @@ import {
     Icon,
     Popover,
 } from "@shopify/polaris";
+import { SaveBar } from "@shopify/app-bridge-react";
+import { useSubmit } from "@remix-run/react";
+import QRSettingsContext from "../contexts/QRSettingsContext";
+import GlobalSaveBar from "./GlobalSaveBar";
+import Loading from "./Loading";
 
-export default function QRSettings() {
+export default function QRSettings({ settingsData }) {
+    const [isLoading, setIsLoading] = useState(true);
     const [visible, setVisible] = useState(false);
-    const [qrName, setQRName] = useState();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [{ month, year }, setDate] = useState({
         month: selectedDate.getMonth(),
@@ -30,6 +35,32 @@ export default function QRSettings() {
     });
     const formattedValue = selectedDate.toISOString().slice(0, 10);
     const datePickerRef = useRef(null);
+    const qrSettingsContext = useContext(QRSettingsContext);
+
+    useEffect(() => {
+        const init = async () => {
+            if (!qrSettingsContext) {
+                console.log("Loading...")
+            } else {
+                setIsLoading(false);
+            }
+        }
+        init();
+    }, [qrSettingsContext])
+
+    const { qrName, setQRName, initialQRName, setInitialQRName } = qrSettingsContext;
+
+    useEffect(() => {
+        const init = async () => {
+            if (!settingsData) {
+                console.log("This is a new QR.");
+                setQRName("");
+            } else {
+                setQRName(settingsData.title);
+            }
+        }
+        init();
+    }, [settingsData])
 
     function handleInputValueChange() {
         console.log("handleInputValueChange");
@@ -60,6 +91,7 @@ export default function QRSettings() {
 
     return (
         <Card>
+            <GlobalSaveBar />
             <BlockStack gap="100">
                 <Text variant="headingMd" as="h6">
                     Settings
