@@ -5,8 +5,8 @@ import { QRCodeStyling } from "qr-code-styling-node/lib/qr-code-styling.common.j
 // import { authenticate } from "../../shopify.server";
 // import { getQRCode } from "../../models/QRCode.server";
 import { useLoaderData } from "@remix-run/react";
-import TargetContext from "../contexts/TargetContext";
-import CustomizationContext from "../contexts/CustomizationContext";
+import TargetContext from "../contexts/QRTargetContext";
+import CustomizationContext from "../contexts/QRCustomizationsContext";
 
 export default function QRCard() {
     const [isLoading, setIsLoading] = useState(true);
@@ -14,6 +14,7 @@ export default function QRCard() {
     const [visible, setVisible] = useState(false);
     const targetContext = useContext(TargetContext);
     const customizationContext = useContext(CustomizationContext);
+    const extensions = ['JPG', 'PNG', 'SVG', 'WEBP'];
     const ref = useRef(null);
 
     useEffect(() => {
@@ -43,14 +44,12 @@ export default function QRCard() {
         qrCode.download({ name: "qr", extension: imgExt })
     }
 
-    const { qrDestination } = targetContext;
-
-    const {         
+    const {
         convertedForegroundColor,
         convertedBackgroundColor,
         selectedPattern,
         selectedEye,
-        file 
+        file
     } = customizationContext
 
     useEffect(() => {
@@ -78,7 +77,6 @@ export default function QRCard() {
         (newImgExt) => {
             setImgExt(newImgExt);
             setVisible(false);
-            console.log(imgExt);
         },
         [],
     );
@@ -118,24 +116,10 @@ export default function QRCard() {
                     >
                         <ActionList
                             actionRole="menuitem"
-                            items={[
-                                {
-                                    content: 'JPG',
-                                    onAction: () => handleImageExtension('JPG'),
-                                },
-                                {
-                                    content: 'PNG',
-                                    onAction: () => handleImageExtension('PNG'),
-                                },
-                                {
-                                    content: 'SVG',
-                                    onAction: () => handleImageExtension('SVG'),
-                                },
-                                {
-                                    content: 'WEBP',
-                                    onAction: () => handleImageExtension('WEBP'),
-                                }
-                            ]}
+                            items={extensions.map((ext) => ({
+                                content: ext,
+                                onAction: () => handleImageExtension(ext),
+                            }))}
                         />
                     </Popover>
                     <Text>

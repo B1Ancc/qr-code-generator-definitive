@@ -1,7 +1,7 @@
 import { BlockStack, Button, Card, Divider, Image, InlineGrid, InlineStack, Link, Text, TextField, Thumbnail, Tooltip, Spinner } from "@shopify/polaris"
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
-import TargetContext from "../contexts/TargetContext";
+import TargetContext from "../contexts/QRTargetContext";
 import GlobalSaveBar from "./GlobalSaveBar";
 import Loading from "./Loading";
 
@@ -106,7 +106,7 @@ export default function QRTarget() {
                 ],
                 items: [
                     {
-                        id: 'homepage',
+                        id: 'Homepage',
                         heading: 'Homepage',
                         data: ['Link to your Shopify store\'s homepage.'],
                         badges: [
@@ -115,7 +115,7 @@ export default function QRTarget() {
                         ],
                     },
                     {
-                        id: 'product_page',
+                        id: 'Product page',
                         heading: 'Product page',
                         data: ['Link to a product page.'],
                         badges: [
@@ -124,7 +124,7 @@ export default function QRTarget() {
                         ],
                     },
                     {
-                        id: 'cart',
+                        id: 'Add to cart',
                         heading: 'Add to cart',
                         data: ['Add a product(s) into the cart.'],
                         badges: [
@@ -133,7 +133,7 @@ export default function QRTarget() {
                         ],
                     },
                     {
-                        id: 'custom_url',
+                        id: 'Custom URL',
                         heading: 'Custom URL',
                         data: ['Link to an URL.'],
                         badges: [
@@ -141,7 +141,7 @@ export default function QRTarget() {
                         ],
                     },
                     {
-                        id: 'text',
+                        id: 'Text',
                         heading: 'Text',
                         data: ['Display specified text.'],
                         badges: [
@@ -149,7 +149,7 @@ export default function QRTarget() {
                         ],
                     },
                     {
-                        id: 'wifi',
+                        id: 'Wi-Fi',
                         heading: 'Wi-Fi',
                         data: ['Connect to the specified Wi-Fi network.'],
                         badges: [
@@ -194,6 +194,10 @@ export default function QRTarget() {
         }
     }
 
+    const saveButton = () => {
+        shopify.saveBar.show("my-save-bar");
+    }
+
     return (
         <Card>
             <GlobalSaveBar />
@@ -202,11 +206,12 @@ export default function QRTarget() {
                     <Text variant="headingMd" as="h6">
                         Current target
                     </Text>
+                    <Button onClick={saveButton}>Toggle save (for debugging only)</Button>
                     <Button variant="primary" onClick={() => handleOpenOptionPicker()} disabled={isLoading}>
-                        Select a destination
+                        Select an endpoint
                     </Button>
                 </InlineStack>
-                {selected === "homepage" &&
+                {selected === "Homepage" &&
                     (
                         isLoading ? <Loading /> : (
                             <>
@@ -219,7 +224,7 @@ export default function QRTarget() {
                         )
                     )
                 }
-                {selected === "product_page" &&
+                {selected === "Product page" &&
                     (
                         isLoading ? <Loading /> : (
                             <>
@@ -249,7 +254,7 @@ export default function QRTarget() {
                         )
                     )
                 }
-                {selected === "custom_url" &&
+                {selected === "Custom URL" &&
                     (
                         isLoading ? <Loading /> : (
                             <>
@@ -268,7 +273,7 @@ export default function QRTarget() {
                         )
                     )
                 }
-                {selected === "text" &&
+                {selected === "Text" &&
                     (
                         isLoading ? <Loading /> : (
                             <>
@@ -286,7 +291,7 @@ export default function QRTarget() {
                         )
                     )
                 }
-                {selected === "wifi" &&
+                {selected === "Wi-Fi" &&
                     (
                         isLoading ? <Loading /> : (
                             <>

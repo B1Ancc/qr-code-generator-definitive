@@ -21,11 +21,11 @@ import {
 } from "@shopify/polaris";
 import { SaveBar } from "@shopify/app-bridge-react";
 import { useSubmit } from "@remix-run/react";
-import SettingsContext from "../contexts/SettingsContext";
+import SettingsContext from "../contexts/QRSettingsContext";
 import GlobalSaveBar from "./GlobalSaveBar";
 import Loading from "./Loading";
 
-export default function QRSettings() {
+export default function QRSettings({ settingsData }) {
     const [isLoading, setIsLoading] = useState(true);
     const [visible, setVisible] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -49,6 +49,18 @@ export default function QRSettings() {
     }, [settingsContext])
 
     const { qrName, setQRName, initialQRName, setInitialQRName } = settingsContext;
+
+    useEffect(() => {
+        const init = async () => {
+            if (!settingsData) {
+                console.log("This is a new QR.");
+                setQRName("");
+            } else {
+                setQRName(settingsData.title);
+            }
+        }
+        init();
+    }, [settingsData])
 
     function handleInputValueChange() {
         console.log("handleInputValueChange");
