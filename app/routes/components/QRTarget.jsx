@@ -4,10 +4,10 @@ import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 import QRTargetContext from "../contexts/QRTargetContext";
 import GlobalSaveBar from "./GlobalSaveBar";
 import Loading from "./Loading";
+import { useQRLoadingContext } from "../contexts/QRLoadingContext"
 
 export default function QRTarget() {
     const shopify = useAppBridge();
-    const [isLoading, setIsLoading] = useState(true);
     const [shopURL, setShopURL] = useState("");
     const [isCustomURLValid, setIsCustomURLValid] = useState(true);
     const [selectedProduct, setSelectedProduct] = useState({
@@ -22,17 +22,17 @@ export default function QRTarget() {
     const [customWifiAddress, setCustomWifiAddress] = useState("");
     const [customWifiPassword, setCustomWifiPassword] = useState("");
     const qrTargetContext = useContext(QRTargetContext);
+    const { loadingStates, setLoading } = useQRLoadingContext();
+    const isLoading = loadingStates["QR_Target"] ?? true;
 
     useEffect(() => {
         const init = async () => {
-            if (!qrTargetContext) {
-                console.log("Loading...")
-            } else {
-                setIsLoading(false);
-            }
+            setLoading("QR_Target", true);
+            await (qrTargetContext);
+            setLoading("QR_Target", false);
         }
         init();
-    }, [qrTargetContext])
+    }, [qrTargetContext]);
 
     const { selected, setSelected, qrDestination, setQRDestination } = qrTargetContext;
 
@@ -200,13 +200,12 @@ export default function QRTarget() {
 
     return (
         <Card>
-            <GlobalSaveBar />
             <BlockStack gap="200">
                 <InlineStack blockAlign="center" align="space-between">
                     <Text variant="headingMd" as="h6">
                         Current target
                     </Text>
-                    <Button onClick={saveButton}>Toggle save (for debugging only)</Button>
+                    <Button disabled="true" onClick={saveButton}>Toggle save (for debugging only)</Button>
                     <Button variant="primary" onClick={() => handleOpenOptionPicker()} disabled={isLoading}>
                         Select an endpoint
                     </Button>
