@@ -34,6 +34,7 @@ model QRCode {
   pattern     String
   eye         String
   type        String
+  imageUrl    String
   createdAt   DateTime @default(now())
   expiredAt   DateTime
 }

@@ -1,5 +1,5 @@
 {
-  "name": "qr-code-generator-definitive",
+  "name": "QR Code Generator Definitive",
   "private": true,
   "scripts": {
     "build": "remix vite:build",
