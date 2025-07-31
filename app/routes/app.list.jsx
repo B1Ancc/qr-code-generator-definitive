@@ -152,7 +152,12 @@ export default function ListPage() {
                 { title: 'Type' },
                 { title: 'Created at' },
               ]}
-              selectable={false}>
+              selectable={false}
+              pagination={{
+                hasNext: true,
+                onNext: () => {},
+              }}
+              >
               {row}
             </IndexTable>
             :
