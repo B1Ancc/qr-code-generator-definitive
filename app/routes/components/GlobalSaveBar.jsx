@@ -1,109 +1,168 @@
-import { useFetcher, useSubmit } from "@remix-run/react";
-import { SaveBar } from "@shopify/app-bridge-react";
-import { useContext, useEffect, useState } from "react";
-import QRTargetContext from "../contexts/QRTargetContext";
-import QRSettingsContext from "../contexts/QRSettingsContext";
-import QRCustomizationsContext from "../contexts/QRCustomizationsContext";
+// import { useFetcher, useSubmit } from "@remix-run/react";
+// import { SaveBar } from "@shopify/app-bridge-react";
+// import { useContext, useEffect, useState } from "react";
+// import QRTargetContext from "../contexts/QRTargetContext";
+// import QRSettingsContext from "../contexts/QRSettingsContext";
+// import QRCustomizationsContext from "../contexts/QRCustomizationsContext";
+// import { useQRLoadingContext } from "../contexts/QRLoadingContext";
 
-export default function GlobalSaveBar() {
-    const [isLoading, setIsLoading] = useState(true);
-    const qrTargetContext = useContext(QRTargetContext);
-    const qrSettingsContext = useContext(QRSettingsContext);
-    const qrCustomizationsContext = useContext(QRCustomizationsContext);
 
-    useEffect(() => {
-        const init = async () => {
-            if (!qrTargetContext || !qrSettingsContext || !qrCustomizationsContext) {
-                console.log("Loading...")
-            } else {
-                setIsLoading(false);
-            }
-        }
-        init();
-    }, [qrTargetContext, qrSettingsContext, qrCustomizationsContext])
+// export default function GlobalSaveBar({ saveData }) {
+//     const qrTargetContext = useContext(QRTargetContext);
+//     const qrSettingsContext = useContext(QRSettingsContext);
+//     const qrCustomizationsContext = useContext(QRCustomizationsContext);
+//     const { loadingStates, setLoading } = useQRLoadingContext();
+//     const isLoading = loadingStates["SaveBar"] ?? true;
 
-    const {
-        selected,
-        qrDestination,
-        setQRDestination
-    } = qrTargetContext;
+//     useEffect(() => {
+//         const init = async () => {
+//             setLoading("SaveBar", true);
+//             await (qrTargetContext);
+//             await (qrSettingsContext);
+//             await (qrCustomizationsContext);
+//             setLoading("SaveBar", false);
+//         }
+//         init();
+//     }, [qrTargetContext, qrSettingsContext, qrCustomizationsContext])
 
-    const {
-        qrName,
-        setQRName,
-        initialQRName,
-        setInitialQRName
-    } = qrSettingsContext;
+//     const {
+//         selected,
+//         qrDestination,
+//     } = qrTargetContext;
 
-    const {
-        convertedForegroundColor,
-        setConvertedForegroundColor,
-        convertedBackgroundColor,
-        setConvertedBackgroundColor,
-        selectedPattern,
-        setSelectedPattern,
-        selectedEye,
-        setSelectedEye,
-    } = qrCustomizationsContext;
+//     const {
+//         qrName,
+//         setQRName,
+//     } = qrSettingsContext;
 
-    const [formData, setFormData] = useState({
-        qrDestination: qrDestination,
-        qrName: qrName,
+//     const {
+//         convertedForegroundColor,
+//         setConvertedForegroundColor,
+//         convertedBackgroundColor,
+//         setConvertedBackgroundColor,
+//         selectedPattern,
+//         setSelectedPattern,
+//         selectedEye,
+//         setSelectedEye,
+//         file,
+//     } = qrCustomizationsContext;
 
-    });
+//     // Checking for changes on any field
+//     useEffect(() => {
+//         const init = async () => {
+//             const hasChange = () => {
+//                 const initial = saveData.data;
+//                 return (
+//                     qrName !== initial.title ||
+//                     convertedForegroundColor !== initial.fgColor ||
+//                     convertedBackgroundColor !== initial.bgColor ||
+//                     selectedPattern !== initial.pattern ||
+//                     selectedEye !== initial.eye ||
+//                     false
+//                 );
+//             }
+//             if (hasChange()) {
+//                 shopify.saveBar.show('my-save-bar');
+//             }
+//             else {
+//                 shopify.saveBar.hide('my-save-bar');
+//             }
+//         }
+//         init();
+//     }, [qrName, convertedForegroundColor, convertedBackgroundColor, selectedPattern, selectedEye]);
 
-    const [initialData, setInitialData] = useState({ ...formData });
+//     const submit = useSubmit();
 
-    useEffect(() => {
-        const isChanged = true;
-        const init = async () => {
-            if (isChanged) {
-                shopify.saveBar.show("my-save-bar");
-            } else {
-                shopify.saveBar.hide("my-save-bar");
-            }
-        }
-        init();
-    }, [formData, initialData])
+//     const handleSave = async () => {
+//         shopify.saveBar.hide('my-save-bar');
 
-    useEffect(() => {
-        console.log(formData);
-        console.log(initialData);
-    }, [formData, initialData])
+//         switch (selected) {
+//             case (selected == "Product page" && !qrDestination):
+//                 shopify.toast.show("Please select a valid product.", {
+//                     isError: true,
+//                     duration: 2000,
+//                 });
+//                 return null;
+//             case (selected == "Add to cart"):
+//                 shopify.toast.show("Please select a valid product.", {
+//                     isError: true,
+//                     duration: 2000,
+//                 });
+//                 return null;
+//             case (selected == "Custom URL"):
+//                 shopify.toast.show("Please select a valid product.", {
+//                     isError: true,
+//                     duration: 2000,
+//                 });
+//                 return null;
+//             case (!convertedForegroundColor || !convertedBackgroundColor || !selectedPattern || !selectedEye):
+//                 shopify.toast.show("There was an error while saving the QR code. Please refresh the app and try again.", {
+//                     isError: true,
+//                     duration: 2000,
+//                 });
+//                 console.log("Missing data!");
+//                 return null;
+//             default:
+//                 shopify.toast.show("Saving... Please do not close the browser during this time.")
+//                 setLoading("QR_Target", true)
+//                 setLoading("QR_Settings", true);
+//                 setLoading("QR_Customizations", true);
 
-    const submit = useSubmit();
+//                 const currentDate = new Date().toISOString();
 
-    const handleSave = async () => {
-        setInitialQRName(qrName);
+//                 const formData = new FormData();
+//                 formData.append("destination", qrDestination);
+//                 formData.append("endpoint", selected);
+//                 formData.append("title", qrName);
+//                 formData.append("fgColor", convertedForegroundColor);
+//                 formData.append("bgColor", convertedBackgroundColor);
+//                 formData.append("pattern", selectedPattern);
+//                 formData.append("eye", selectedEye);
+//                 formData.append("createdAt", currentDate);
+//                 formData.append("expiredAt", currentDate);
 
-        const currentDate = new Date().toISOString();
+//                 if (file) {
+//                     const imageFile = new File([file], "qr.png", { type: file.type });
+//                     formData.append("imageUrl", imageFile);
+//                 }
 
-        const data = {
-            destination: qrDestination,
-            title: qrName,
-            fgColor: convertedForegroundColor,
-            bgColor: convertedBackgroundColor,
-            pattern: selectedPattern,
-            frame: selectedEye,
-            createdAt: currentDate,
-            expiredAt: currentDate,
-        };
+//                 const submitTimeout = () => new Promise(resolve => {
+//                     setTimeout(async () => {
+//                         await submit(formData, {
+//                             method: "post",
+//                             encType: "multipart/form-data"
+//                         });
+//                         resolve();
+//                     }, 5000);
+//                 });
 
-        submit(data, { method: "post" });
-        shopify.saveBar.hide('my-save-bar');
-    };
+//                 await submitTimeout();
 
-    const handleDiscard = () => {
-        setQRName(initialQRName);
-        shopify.saveBar.hide('my-save-bar');
-    };
+//                 setLoading("QR_Target", false);
+//                 setLoading("QR_Settings", false);
+//                 setLoading("QR_Customizations", false);
 
-    return (
-        <>
-            <SaveBar id="my-save-bar">
-                <button variant="primary" onClick={handleSave}></button>
-                <button onClick={handleDiscard}></button>
-            </SaveBar>
-        </>
-    )
-}
+//                 shopify.toast.show("Saved.")
+//         }
+//     };
+
+//     const handleDiscard = () => {
+//         const initial = saveData.data;
+//         setQRName(initial.title);
+//         setConvertedForegroundColor(initial.fgColor);
+//         setConvertedBackgroundColor(initial.bgColor);
+//         setSelectedPattern(initial.pattern);
+//         setSelectedEye(initial.eye);
+//         shopify.toast.show("All unsaved changes have been reverted.");
+//         shopify.saveBar.hide('my-save-bar');
+//     };
+
+//     return (
+//         <>
+//             <SaveBar id="my-save-bar">
+//                 <button variant="primary" onClick={handleSave}></button>
+//                 <button onClick={handleDiscard}></button>
+//             </SaveBar>
+//         </>
+//     )
+// }
