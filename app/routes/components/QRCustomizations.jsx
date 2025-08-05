@@ -14,9 +14,10 @@ import {
     Thumbnail,
     Button,
 } from "@shopify/polaris";
-import {NoteIcon} from '@shopify/polaris-icons';
+import { NoteIcon } from '@shopify/polaris-icons';
 import QRCustomizationsContext from "../contexts/QRCustomizationsContext";
 import GlobalSaveBar from "./GlobalSaveBar";
+import { useQRLoadingContext } from "../contexts/QRLoadingContext"
 
 const colorPickerStyles = {
     width: 50,
@@ -54,20 +55,19 @@ const selectedPatternPickerStyles = {
 }
 
 export default function QRCustomizations({ customData }) {
-    const [isLoading, setIsLoading] = useState(true);
     const [visible, setVisible] = useState(false);
     const qrCustomizationsContext = useContext(QRCustomizationsContext);
+    const { loadingStates, setLoading } = useQRLoadingContext();
+    const isLoading = loadingStates["QR_Customizations"] ?? true;
 
     useEffect(() => {
         const init = async () => {
-            if (!qrCustomizationsContext) {
-                console.log("Loading...")
-            } else {
-                setIsLoading(false);
-            }
+            setLoading("QR_Customizations", true);
+            await (qrCustomizationsContext);
+            setLoading("QR_Customizations", false);
         }
         init();
-    }, [qrCustomizationsContext])
+    }, [qrCustomizationsContext]);
 
     const {
         selectedForegroundColor,
@@ -91,8 +91,22 @@ export default function QRCustomizations({ customData }) {
             if (!customData) {
                 console.log("This is a new QR.");
             } else {
-                setSelectedPattern(customData.pattern);
-                setSelectedEye(customData.eye)
+                setConvertedForegroundColor(customData.data.fgColor);
+                setConvertedBackgroundColor(customData.data.bgColor);
+                setSelectedPattern(customData.data.pattern);
+                setSelectedEye(customData.data.eye);
+
+                if (customData.imageData) {
+                    const imageURL = customData.imageData;
+
+                    console.log(imageURL);
+
+                    const response = await fetch(imageURL);
+                    if (!response.ok) throw new Error(imageURL);
+
+                    const blob = await response.blob();
+                    setFile(blob);
+                }
             }
         }
         init();
@@ -145,7 +159,7 @@ export default function QRCustomizations({ customData }) {
         setFile(null);
     }
 
-    const fileUpload = !file && <DropZone.FileUpload actionTitle="Browse an image to upload" actionHint={`or drag and drop an image here to upload. Accepts image in .jpg or .png format.`}/>;
+    const fileUpload = !file && <DropZone.FileUpload actionTitle="Browse an image to upload" actionHint={`or drag and drop an image here to upload. Accepts image in .jpg or .png format.`} />;
     const uploadedFile = file && (
         <BlockStack>
             <Thumbnail
@@ -165,7 +179,6 @@ export default function QRCustomizations({ customData }) {
 
     return (
         <Card>
-        <GlobalSaveBar />
             <BlockStack gap="100">
                 <Text variant="headingMd" as="h6">
                     Customizations
@@ -303,13 +316,15 @@ export default function QRCustomizations({ customData }) {
                         </InlineStack>
                     </BlockStack>
                     {/* {errorMessageImageDrop} */}
-                    <DropZone allowMultiple={false} onDrop={handleImageDrop} accept="image/*" type="image">
-                        {uploadedFile}
-                        {fileUpload}
-                    </DropZone>
-                    {file && (
-                        <Button onClick={handleImageRemove}>Bú cặc</Button>
-                    )}
+                    <BlockStack gap="100">
+                        <DropZone allowMultiple={false} onDrop={handleImageDrop} accept="image/*" type="image">
+                            {uploadedFile}
+                            {fileUpload}
+                        </DropZone>
+                        {file && (
+                            <Button onClick={handleImageRemove}>Remove the attached image</Button>
+                        )}
+                    </BlockStack>
                 </FormLayout>
             </BlockStack>
         </Card>
