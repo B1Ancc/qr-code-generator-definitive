@@ -33,6 +33,9 @@ export const loader = async ({ request }) => {
         title: true,
         type: true,
         createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       }
     }
   );
@@ -150,7 +153,7 @@ export default function ListPage() {
                 { title: 'Name' },
                 { title: 'Endpoint' },
                 { title: 'Type' },
-                { title: 'Created at' },
+                { title: 'Last modified' },
               ]}
               selectable={false}
               pagination={{

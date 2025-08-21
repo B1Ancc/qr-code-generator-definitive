@@ -6,12 +6,13 @@ import {
   Text,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
-import Homepage from "./components/Homepage";
+import QRStaticPage from "./components/QRStaticPage";
 import QRCard from "./components/QRCard";
-import { isRouteErrorResponse, redirect, useLoaderData, useRouteError } from "@remix-run/react";
+import { isRouteErrorResponse, redirect, useActionData, useLoaderData, useRouteError } from "@remix-run/react";
 import db from "../db.server"
 import { useEffect } from "react";
 import Error404 from "./components/Error404";
+import { json } from "@remix-run/node";
 
 export const loader = async ({ request, params }) => {
   const { admin, session, redirect } = await authenticate.admin(request);
@@ -26,18 +27,108 @@ export const loader = async ({ request, params }) => {
       },
       select: {
         id: true,
+        destination: true,
+        endpoint: true,
         title: true,
         fgColor: true,
         bgColor: true,
         pattern: true,
         eye: true,
+        productId: true,
+        variantId: true,
         imageUrl: true,
+        isDeleted: true
       }
     }
   );
 
-  if (!data) {
+  if (!data || data.isDeleted === true) {
     throw new Response("Failed to get data!", { status: 404 });
+  }
+
+  try {
+    if (data.endpoint === "Product page") {
+      const productGID = data.productId;
+      const queryProduct = await admin.graphql(
+        `#graphql
+        query($identifier: ProductIdentifierInput!) {
+          product: productByIdentifier(identifier: $identifier) {
+            id
+            handle
+            title
+            media(first: 1) {
+              edges {
+                node {
+                  id
+                  alt
+                  preview {
+                    image {
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }`,
+        {
+          variables: {
+            "identifier": {
+              "id": productGID,
+            }
+          }
+        }
+      );
+      const result = await queryProduct.json();
+      const productData = result?.data?.product;
+
+      data.productTitle = productData.title || null;
+      data.productImage = productData.media.edges[0].node.preview.image.url || null;
+    } else if (data.endpoint === "Add to cart") {
+      const variantGID = data.variantId;
+      const queryVariant = await admin.graphql(
+        `#graphql
+        query($identifier: ProductVariantIdentifierInput!) {
+          product: productVariantByIdentifier(identifier: $identifier) {
+            id
+            title
+            displayName
+            inventoryQuantity
+            media(first: 1) {
+              edges {
+                node {
+                  id
+                  alt
+                  preview {
+                    image {
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }`,
+        {
+          variables: {
+            "identifier": {
+              "id": variantGID,
+            }
+          }
+        }
+      );
+      const result = await queryVariant.json();
+      const productData = result?.data?.product;
+
+      const displayTitle = productData.displayName.split(` - ${productData.title}`);
+      data.productTitle = displayTitle[0] || null;
+      data.productVariantTitle = productData.title || null;
+      data.productVariantImage = productData.media.edges[0].node.preview.image.url || null;
+      data.productVariantQuantity = productData.inventoryQuantity || null;
+    } else {
+    }
+  } catch (err) {
+    console.error("There was an error while fetching the QR: ", err);
   }
 
   try {
@@ -69,16 +160,21 @@ export const loader = async ({ request, params }) => {
         imageData,
       };
     } else {
-      const imageData = null;
+      const imageData = "";
 
       return {
         data,
         imageData
       }
     }
-  } catch (error) {
-    const imageData = JSON.stringify(error, null, 2);
-    throw new Response(imageData, { status: 500 });
+  } catch (err) {
+    // const errorsMessage = ["body", "errors", "networkStatusCode", "message"];
+    // const imageData = JSON.stringify(error.body.errors, null, 2);
+    const imageData = "200";
+    return {
+      data,
+      imageData
+    }
   }
 };
 
@@ -193,18 +289,26 @@ export const action = async ({ request, params }) => {
       bgColor: formData.get("bgColor"),
       pattern: formData.get("pattern"),
       eye: formData.get("eye"),
+      productId: formData.get("productId"),
+      variantId: formData.get("variantId"),
       imageUrl: imageId ? imageId : "",
       createdAt: formData.get("createdAt"),
       expiredAt: formData.get("expiredAt"),
       shop,
     };
 
-    const updateQRCodeWithImage = await db.qRCode.update({
-      where: {
-        id: params.id,
-      },
-      data
-    });
+    try {
+      const updateQRCodeWithImage = await db.qRCode.update({
+        where: {
+          id: params.id,
+        },
+        data
+      });
+      return json({ success: true, message: "QR updated successfully" });
+    } catch (err) {
+      console.error("There was an error while updating the QR: ", err);
+      return json({ success: false, error: "Failed to update QR code" }, { status: 500 });
+    }
   } else {
     const data = {
       title: formData.get("title"),
@@ -214,29 +318,37 @@ export const action = async ({ request, params }) => {
       bgColor: formData.get("bgColor"),
       pattern: formData.get("pattern"),
       eye: formData.get("eye"),
+      productId: formData.get("productId"),
+      variantId: formData.get("variantId"),
       imageUrl: "",
       createdAt: formData.get("createdAt"),
       expiredAt: formData.get("expiredAt"),
       shop,
     };
 
-    const updateQRCode = await db.qRCode.update({
-      where: {
-        id: params.id,
-      },
-      data
-    });
+    try {
+      const updateQRCode = await db.qRCode.update({
+        where: {
+          id: params.id,
+        },
+        data
+      });
+      return json({ success: true, message: "QR updated successfully" });
+    } catch (err) {
+      console.error("There was an error while updating the QR: ", err);
+      return json({ success: false, error: "Failed to update QR code" }, { status: 500 });
+    }
   }
-  return null;
 }
 
 export default function StaticQRPage() {
   const { data, imageData } = useLoaderData();
+  const actionData = useActionData();
 
   return (
     <Grid>
       <Grid.Cell columnSpan={{ xs: 8, sm: 4, md: 4, lg: 8, xl: 8 }}>
-        <Homepage qrData={{ data, imageData }} />
+        <QRStaticPage qrData={{ data, imageData, actionData }} />
       </Grid.Cell>
       <Grid.Cell columnSpan={{ xs: 4, sm: 2, md: 2, lg: 4, xl: 4 }}>
         <QRCard />

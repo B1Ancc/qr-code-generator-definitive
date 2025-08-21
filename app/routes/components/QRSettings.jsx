@@ -52,7 +52,6 @@ export default function QRSettings({ settingsData }) {
 
     useEffect(() => {
         const init = async () => {
-            console.log(settingsData.data.title);
             if (!settingsData) {
                 console.log("This is a new QR.");
                 setQRName("");
