@@ -35,6 +35,9 @@ model QRCode {
   eye         String
   type        String
   imageUrl    String
+  productId   String
+  variantId   String
   createdAt   DateTime @default(now())
   expiredAt   DateTime
+  isDeleted   Boolean
 }

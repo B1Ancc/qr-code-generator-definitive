@@ -1,4 +1,4 @@
-import { BlockStack, Button, Card, Divider, Image, InlineGrid, InlineStack, Link, Text, TextField, Thumbnail, Tooltip, Spinner } from "@shopify/polaris"
+import { BlockStack, Button, Card, Divider, Image, InlineGrid, InlineStack, Link, Text, TextField, Thumbnail, Tooltip, Spinner, ResourceItem, Avatar, ResourceList } from "@shopify/polaris"
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 import QRTargetContext from "../contexts/QRTargetContext";
@@ -6,7 +6,7 @@ import GlobalSaveBar from "./GlobalSaveBar";
 import Loading from "./Loading";
 import { useQRLoadingContext } from "../contexts/QRLoadingContext"
 
-export default function QRTarget() {
+export default function QRTarget({ targetData }) {
     const shopify = useAppBridge();
     const [shopURL, setShopURL] = useState("");
     const [isCustomURLValid, setIsCustomURLValid] = useState(true);
@@ -16,7 +16,15 @@ export default function QRTarget() {
         id: null,
         url: null
     });
-    // const [isProductAvailable, setIsProductAvailable] = useState(false);
+    const [selectedCart, setSelectedCart] = useState({
+        title: null,
+        images: null,
+        id: null,
+        variantId: null,
+        variantName: null,
+        url: null,
+        stock: null,
+    });
     const [customURL, setCustomURL] = useState("");
     const [customText, setCustomText] = useState("");
     const [customWifiAddress, setCustomWifiAddress] = useState("");
@@ -34,12 +42,52 @@ export default function QRTarget() {
         init();
     }, [qrTargetContext]);
 
-    const { selected, setSelected, qrDestination, setQRDestination } = qrTargetContext;
+    const {
+        selected,
+        setSelected,
+        qrDestination,
+        setQRDestination,
+        qrProductId,
+        setQRProductId,
+        qrVariantId,
+        setQRVariantId } = qrTargetContext;
 
     useEffect(() => {
         const { shop } = shopify.config;
         setShopURL(`https://${shop}`);
-    }, [])
+    }, []);
+
+    useEffect(() => {
+        const init = async () => {
+            if (!targetData) {
+                console.log("This is a new QR.");
+            } else {
+                if (targetData.data.endpoint === "Product page") {
+                    setSelected("Product page");
+                    console.log(targetData.data);
+                    setSelectedProduct({
+                        title: targetData.data.productTitle,
+                        images: targetData.data.productImage,
+                        id: targetData.data.productId,
+                        url: targetData.data.destination,
+                    })
+                }
+                else if (targetData.data.endpoint === "Add to cart") {
+                    setSelected("Add to cart");
+                    setSelectedCart({
+                        title: targetData.data.productTitle,
+                        images: targetData.data.productVariantImage,
+                        id: targetData.data.productId,
+                        variantId: targetData.data.variantId,
+                        variantName: targetData.data.productVariantTitle,
+                        url: targetData.data.destination,
+                        stock: targetData.data.productVariantQuantity,
+                    })
+                }
+            }
+        }
+        init();
+    }, [targetData]);
 
     useEffect(() => {
         setQRDestination();
@@ -92,8 +140,14 @@ export default function QRTarget() {
 
     useEffect(() => {
         setQRDestination(selectedProduct.url);
-        console.log(selectedProduct.id);
+        setQRProductId(selectedProduct.id);
     }, [selectedProduct])
+
+    useEffect(() => {
+        setQRDestination(selectedCart.url);
+        setQRProductId(selectedCart.id);
+        setQRVariantId(selectedCart.variantId);
+    }, [selectedCart])
 
     const handleOpenOptionPicker = async () => {
         try {
@@ -175,27 +229,47 @@ export default function QRTarget() {
                 filter: {
                     variants: false
                 },
-                // selectionIds: {
-                //     id: (selectedProduct.id !== null) ? selectedProduct.id : 0
-                // }
             });
 
-            const pickedProduct = await productPicker.map((productPick) => ({
-                title: productPick.title,
-                images: productPick.images[0].originalSrc, // default
-                id: productPick.id,
-                url: `${shopURL}/products/${productPick.handle}`
+            const pickedProduct = await productPicker.map(({ title, images, id, handle }) => ({
+                title: title,
+                images: images[0].originalSrc, // default
+                id: id,
+                url: `${shopURL}/products/${handle}`
             }))[0];
-
             setSelectedProduct(pickedProduct);
-
         } catch (error) {
             console.error("Something went wrong: ", error);
         }
     }
 
-    const saveButton = () => {
-        shopify.saveBar.show("my-save-bar");
+    const handleOpenCartPicker = async () => {
+        try {
+            const cartPicker = await shopify.resourcePicker({
+                type: 'product',
+                multiple: false,
+                filter: {
+                    variants: true,
+                    query: "inventory_total:>=1"
+                },
+            });
+
+            const pickedCart = await cartPicker.map(({ title, images, id, variants, handle }) => {
+                const productVariant = variants[0].id.split("gid://shopify/ProductVariant/");
+                return ({
+                    title: title,
+                    images: images[0].originalSrc, // default
+                    id: id,
+                    variantId: variants[0].id,
+                    variantName: variants[0].title,
+                    url: `${shopURL}/cart/${productVariant[1]}:1`,
+                    stock: variants[0].inventoryQuantity,
+                });
+            })[0];
+            setSelectedCart(pickedCart);
+        } catch (error) {
+            console.error("Something went wrong: ", error);
+        }
     }
 
     return (
@@ -203,9 +277,8 @@ export default function QRTarget() {
             <BlockStack gap="200">
                 <InlineStack blockAlign="center" align="space-between">
                     <Text variant="headingMd" as="h6">
-                        Current target
+                        Current target - {selected}
                     </Text>
-                    <Button disabled="true" onClick={saveButton}>Toggle save (for debugging only)</Button>
                     <Button variant="primary" onClick={() => handleOpenOptionPicker()} disabled={isLoading}>
                         Select an endpoint
                     </Button>
@@ -238,14 +311,121 @@ export default function QRTarget() {
                                     (
                                         <>
                                             <Divider />
-                                            <InlineStack blockAlign="center" gap="300">
+                                            <ResourceList
+                                                resourceName={{ singular: 'product', plural: 'products' }}
+                                                items={[
+                                                    {
+                                                        id: selectedProduct.id,
+                                                        url: selectedProduct.url,
+                                                        imgSrc: selectedProduct.images,
+                                                        name: selectedProduct.title
+                                                    },
+                                                ]}
+                                                renderItem={(item) => {
+                                                    const { id, url, imgSrc, name } = item;
+
+                                                    return (
+                                                        <ResourceItem
+                                                            id={id}
+                                                            media={
+                                                                <Thumbnail
+                                                                    source={imgSrc}
+                                                                    size="small"
+                                                                    alt={name}
+                                                                />
+                                                            }
+                                                            accessibilityLabel={`View details for ${name}`}
+                                                            name={name}
+                                                        >
+                                                            <Text variant="bodyMd" fontWeight="bold" as="h3">
+                                                                {name}
+                                                            </Text>
+                                                        </ResourceItem>
+                                                    );
+                                                }}
+                                            />
+                                            {/* <InlineStack blockAlign="center" gap="300">
                                                 <Thumbnail
                                                     source={selectedProduct.images}
                                                     size="small"
                                                     alt=""
                                                 />
                                                 <Link url={selectedProduct.url} target="_blank">{selectedProduct.title}</Link>
-                                            </InlineStack>
+                                            </InlineStack> */}
+                                        </>
+                                    )
+                                }
+                            </>
+                        )
+                    )
+                }
+                {selected === "Add to cart" &&
+                    (
+                        isLoading ? <Loading /> : (
+                            <>
+                                <InlineStack blockAlign="center" align="space-between">
+                                    <Tooltip content="Customer will be redirected to the selected product page." dismissOnMouseOut>
+                                        <Button onClick={() => handleOpenCartPicker()}>
+                                            Select a product
+                                        </Button>
+                                    </Tooltip>
+                                </InlineStack>
+                                {selectedCart.id &&
+                                    (
+                                        <>
+                                            <Divider />
+                                            <ResourceList
+                                                resourceName={{ singular: 'cart', plural: 'carts' }}
+                                                items={[
+                                                    {
+                                                        name: selectedCart.title,
+                                                        imgSrc: selectedCart.images,
+                                                        id: selectedCart.id,
+                                                        variantId: selectedCart.variantId,
+                                                        variantName: selectedCart.variantName,
+                                                        url: selectedCart.url,
+                                                        stock: selectedCart.stock,
+                                                    },
+                                                ]}
+                                                renderItem={(item) => {
+                                                    const { name, imgSrc, id, variantId, variantName, url, stock } = item;
+
+                                                    return (
+                                                        <ResourceItem
+                                                            id={id}
+                                                            media={
+                                                                <Thumbnail
+                                                                    source={imgSrc}
+                                                                    size="small"
+                                                                    alt={name}
+                                                                />
+                                                            }
+                                                            accessibilityLabel={`View details for ${name}`}
+                                                            name={name}
+                                                        >
+                                                            <Text variant="bodyMd" fontWeight="bold" as="h3">
+                                                                {name}
+                                                            </Text>
+                                                            <Text variant="bodyMd" fontWeight="subdued" as="h4">
+                                                                {variantName}
+                                                            </Text>
+                                                            {stock <= 0 && <Text variant="bodyMd" tone="critical" as="h4">This product is currently out of stock.</Text>}
+                                                        </ResourceItem>
+                                                    );
+                                                }}
+                                            />
+                                            {/* <InlineStack blockAlign="center" gap="300">
+                                                <Thumbnail
+                                                    source={selectedCart.images}
+                                                    size="small"
+                                                    alt=""
+                                                />
+                                                <BlockStack>
+                                                    <Link url={selectedCart.url} target="_blank">{selectedCart.title}</Link>
+                                                    {selectedCart.variantName !== "Default Title" && <Text>{selectedCart.variantName}</Text>}
+                                                    {selectedCart.stock <= 0 && <Text tone="critical">This product is currently out of stock.</Text>}
+                                                </BlockStack>
+                                            </InlineStack> */}
                                         </>
                                     )
                                 }
@@ -278,8 +458,7 @@ export default function QRTarget() {
                             <>
                                 <TextField
                                     value={customText}
-                                    placeholder=""
-                                    label="Destination URL"
+                                    placeholder="Enter text here..."
                                     multiline={4}
                                     type="text"
                                     id="custom-text-textfield"

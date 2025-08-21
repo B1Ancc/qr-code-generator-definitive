@@ -3,7 +3,7 @@ import { FooterHelp } from "@shopify/polaris";
 export default function Footer() {
     return (
         <FooterHelp>
-            © 2025 Spinel (alpha build 25w5mJLa)
+            © 2025 Spinel (alpha build 25w4mAUb)
         </FooterHelp>
     )
 }

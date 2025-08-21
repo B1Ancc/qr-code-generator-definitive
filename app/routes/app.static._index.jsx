@@ -2,14 +2,33 @@ import { useEffect, useState } from "react";
 import {
   Grid,
 } from "@shopify/polaris";
-import Homepage from "./components/Homepage";
+import QRStaticPage from "./components/QRStaticPage";
 import QRCard from "./components/QRCard";
 import { v4 as uuidv4 } from 'uuid';
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { json } from "@remix-run/node";
+
+import { useActionData, useLoaderData } from "@remix-run/react";
 
 export const loader = () => {
-  return null;
+  const data = {
+    // Placeholder, implement values from settings next update
+    title: "",
+    endpoint: "Homepage",
+    fgColor: "#ff0000",
+    bgColor: "#16ecec",
+    pattern: "square",
+    eye: "square",
+    productId: "",
+    variantId: "",
+  };
+  const imageData = "";
+
+  return {
+    data,
+    imageData
+  }
 };
 
 export const action = async ({ request, params }) => {
@@ -124,15 +143,24 @@ export const action = async ({ request, params }) => {
       bgColor: formData.get("bgColor"),
       pattern: formData.get("pattern"),
       eye: formData.get("eye"),
+      productId: formData.get("productId"),
+      variantId: formData.get("variantId"),
       imageUrl: imageId ? imageId : "",
       createdAt: formData.get("createdAt"),
       expiredAt: formData.get("expiredAt"),
       shop,
       id: uniqueId,
       type: "Static",
+      isDeleted: false,
     };
 
-    const createQRCodeWithImage = await db.qRCode.create({ data });
+    try {
+      const createQRCodeWithImage = await db.qRCode.create({ data });
+      return json({ success: true, message: "QR created successfully" });
+    } catch (err) {
+      console.error("There was an error while creating the QR: ", err);
+      return json({ success: false, error: "Failed to create QR code" }, { status: 500 });
+    }
 
   } else {
     const data = {
@@ -143,25 +171,35 @@ export const action = async ({ request, params }) => {
       bgColor: formData.get("bgColor"),
       pattern: formData.get("pattern"),
       eye: formData.get("eye"),
+      productId: formData.get("productId"),
+      variantId: formData.get("variantId"),
       imageUrl: "",
       createdAt: formData.get("createdAt"),
       expiredAt: formData.get("expiredAt"),
       shop,
       id: uniqueId,
       type: "Static",
+      isDeleted: false,
     };
 
-    const createQRCode = await db.qRCode.create({ data });
+    try {
+      const createQRCode = await db.qRCode.create({ data });
+      return json({ success: true, message: "QR created successfully" });
+    } catch (err) {
+      console.error("There was an error while creating the QR: ", err);
+      return json({ success: false, error: "Failed to create QR code" }, { status: 500 });
+    }
   }
-  return null;
 }
 
 export default function StaticIndexPage() {
+  const { data, imageData } = useLoaderData();
+  const actionData = useActionData();
 
   return (
     <Grid>
       <Grid.Cell columnSpan={{ xs: 8, sm: 4, md: 4, lg: 8, xl: 8 }}>
-        <Homepage />
+        <QRStaticPage qrData={{ data, imageData, actionData }} />
       </Grid.Cell>
       <Grid.Cell columnSpan={{ xs: 4, sm: 2, md: 2, lg: 4, xl: 4 }}>
         <QRCard />
