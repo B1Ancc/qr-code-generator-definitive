@@ -11,6 +11,8 @@ import {
   DataTable,
   IndexTable,
   Filters,
+  ChoiceList,
+  Badge,
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import Footer from "./components/Footer";
@@ -48,6 +50,9 @@ export default function ListPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [filteredRows, setFilteredRows] = useState(rows);
   const [queryValue, setQueryValue] = useState();
+  const [qrType, setQRType] = useState();
+  const [qrEndpoint, setQREndpoint] = useState();
+  const [paginationNumber, setPaginationNumber] = useState(1);
 
   useEffect(() => {
     const init = async () => {
@@ -60,15 +65,8 @@ export default function ListPage() {
     init();
   }, [rows]);
 
-  // const filteredRows = rows.filter(({ title, endpoint, destination }) =>
-  //   [title, endpoint, destination]
-  //     .some(field =>
-  //       field?.includes(queryValue)
-  //     )
-  // );
-
   useEffect(() => {
-    setIsLoading(true);
+    // setIsLoading(true);
 
     const timer = setTimeout(() => {
       if (!queryValue.trim()) {
@@ -76,8 +74,8 @@ export default function ListPage() {
       } else {
         const query = queryValue.toLowerCase();
 
-        const result = rows.filter(({ title, endpoint, destination }) =>
-          [title, endpoint, destination].some((field) => field?.toLowerCase().includes(query))
+        const result = rows.filter(({ title, destination }) =>
+          [title, destination].some((field) => field?.toLowerCase().includes(query))
         );
 
         setFilteredRows(result);
@@ -93,39 +91,169 @@ export default function ListPage() {
     [],
   );
 
-  const row = filteredRows.map(
-    ({ id, title, destination, endpoint, type, createdAt }) => {
-      const date = new Date(createdAt);
-      const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  const handleQRTypeChange = useCallback(
+    (value) => setQRType(value),
+    [],
+  )
 
-      return (
-        <IndexTable.Row
-          id={id}
-          key={id}
-        >
-          <IndexTable.Cell>
-            <Text>
-              <Link
-                url={`/app/static/${id}`}
-                key={id}
-              >
-                {title}
-              </Link>
-            </Text>
-          </IndexTable.Cell>
-          <IndexTable.Cell>{endpoint}</IndexTable.Cell>
-          <IndexTable.Cell>{type}</IndexTable.Cell>
-          <IndexTable.Cell>{formattedDate}</IndexTable.Cell>
-        </IndexTable.Row>
-      )
+  const handleQREndpointChange = useCallback(
+    (value) => setQREndpoint(value),
+    [],
+  )
+
+  const handleQRTypeRemove = () => setQRType("");
+
+  const handleQREndpointRemove = () => setQREndpoint("");
+
+
+  const handleFiltersClearAll = () => {
+    handleQRTypeRemove();
+    handleQREndpointRemove();
+  }
+
+  const handlePaginationNext = () => {
+    setPaginationNumber(paginationNumber + 1);
+  }
+
+  const handlePaginationPrevious = () => {
+    if (paginationNumber > 1) {
+      setPaginationNumber(paginationNumber - 1);
     }
-  );
+  }
 
   const resourceName = {
     singular: 'order',
     plural: 'orders',
   };
 
+  const filters = [
+    {
+      key: 'qrType',
+      label: `QR Type`,
+      filter: (
+        <ChoiceList
+          title="QR Type"
+          titleHidden
+          choices={[
+            {
+              label: 'Static',
+              value: 'Static'
+            },
+            {
+              label: 'Dynamic',
+              value: 'Dynamic'
+            }
+          ]}
+          selected={qrType || []}
+          onChange={handleQRTypeChange}
+        />
+      )
+    },
+    {
+      key: 'qrEndpoint',
+      label: 'Endpoint',
+      filter: (
+        <ChoiceList
+          title="Endpoint"
+          titleHidden
+          choices={[
+            {
+              label: 'Homepage',
+              value: 'Homepage',
+            },
+            {
+              label: 'Product page',
+              value: 'Product page',
+            },
+            {
+              label: 'Add to cart',
+              value: 'Add to cart',
+            },
+            {
+              label: 'Custom URL',
+              value: 'Custom URL',
+            },
+            {
+              label: 'Text',
+              value: 'Text',
+            },
+            {
+              label: 'Wi-Fi',
+              value: 'Wi-Fi',
+            }
+          ]}
+          selected={qrEndpoint || []}
+          onChange={handleQREndpointChange}
+        />
+      )
+    }
+  ]
+
+  const appliedFilters = [];
+
+  let filteredResults = filteredRows.filter(
+    ({ type, endpoint }) =>
+      type == qrType && endpoint == qrEndpoint
+  );
+
+  if (!qrType && !qrEndpoint) {
+    filteredResults = filteredRows;
+  } else if (qrType && !qrEndpoint) {
+    filteredResults = filteredRows.filter(
+      ({ type }) =>
+        type == qrType
+    );
+  } else if (!qrType && qrEndpoint) {
+    filteredResults = filteredRows.filter(
+      ({ endpoint }) =>
+        endpoint == qrEndpoint
+    );
+  }
+
+  if (qrType) {
+    appliedFilters.push({
+      key: 'qrType',
+      label: `${qrType}`,
+      onRemove: handleQRTypeRemove
+    });
+  }
+
+  if (qrEndpoint) {
+    appliedFilters.push({
+      key: 'qrEndpoint',
+      label: `${qrEndpoint}`,
+      onRemove: handleQREndpointRemove
+    });
+  }
+
+  const row = filteredResults
+    .map(
+      ({ id, title, destination, endpoint, type, createdAt }) => {
+        const date = new Date(createdAt);
+        const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+        return (
+          <IndexTable.Row
+            id={id}
+            key={id}
+          >
+            <IndexTable.Cell>
+              <Text>
+                <Link
+                  url={type == "Static" ? `/app/static/${id}` : `/app/dynamic/${id}`}
+                  key={id}
+                >
+                  {title.length <= 28 ? title : `${title.slice(0, 27)}...`}
+                </Link>
+              </Text>
+            </IndexTable.Cell>
+            <IndexTable.Cell><Badge>{endpoint}</Badge></IndexTable.Cell>
+            <IndexTable.Cell><Badge tone="info">{type}</Badge></IndexTable.Cell>
+            <IndexTable.Cell>{formattedDate}</IndexTable.Cell>
+          </IndexTable.Row>
+        )
+      }
+    );
 
   return (
     <Page
@@ -135,11 +263,14 @@ export default function ListPage() {
     >
       <TitleBar title="Your QR codes" />
       <Card>
+        <BlockStack gap="200">
         <Filters
           queryValue={queryValue}
-          queryPlaceholder="Search a QR code(s) by name, endpoint or URL"
-          filters={["lol", "lmao"]}
+          queryPlaceholder="Search a QR code(s) by name or its content"
+          filters={filters}
+          appliedFilters={appliedFilters}
           onQueryChange={handleFiltersQueryChange}
+          onClearAll={handleFiltersClearAll}
           loading={isLoading}
         />
         {pageLoading ?
@@ -148,7 +279,7 @@ export default function ListPage() {
           (row.length !== 0 ?
             <IndexTable
               resourceName={resourceName}
-              itemCount={rows.length}
+              itemCount={row.length}
               headings={[
                 { title: 'Name' },
                 { title: 'Endpoint' },
@@ -157,11 +288,14 @@ export default function ListPage() {
               ]}
               selectable={false}
               pagination={{
-                hasNext: true,
-                onNext: () => {},
+                hasNext: paginationNumber <= Math.floor(row.length / 25),
+                hasPrevious: paginationNumber > 1,
+                onNext: handlePaginationNext,
+                onPrevious: handlePaginationPrevious,
+                label: paginationNumber,
               }}
-              >
-              {row}
+            >
+              {row.slice((paginationNumber - 1) * 25, paginationNumber * 25)}
             </IndexTable>
             :
             <BlockStack inlineAlign="center" gap="200">
@@ -169,11 +303,12 @@ export default function ListPage() {
                 There's nothing here...
               </Text>
               <Text fontWeight="bodyLg" as="p">
-                Maybe try to create some QR codes with us?
+                Maybe you could try to create some QR codes first?
               </Text>
             </BlockStack>
           )
         }
+        </BlockStack>
       </Card>
       <Footer />
     </Page>
