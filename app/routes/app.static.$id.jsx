@@ -426,8 +426,7 @@ export default function StaticQRPage() {
           duration: 2000
         });
       } else {
-        shopify.toast.show("Saved.");
-        navigate("/app");
+        shopify.toast.show("Deleted.");
       }
     } catch (err) {
       setLoading("QR_Target", false);
