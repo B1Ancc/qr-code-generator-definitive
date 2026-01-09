@@ -214,65 +214,66 @@ export const action = async ({ request, params }) => {
   // Images uploading function
   const formData = await request.formData();
   const file = formData.get("imageUrl");
+  let imageId = "";
   if (file) {
-    const fileName = file.name
+    //   const fileName = file.name
 
-    const stagedUploadsImage = await admin.graphql(
-      `#graphql
-    mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
-    stagedUploadsCreate(input: $input) {
-      stagedTargets {
-        url
-        resourceUrl
-        parameters {
-          name
-          value
-        }
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }`,
-      {
-        variables: {
-          "input": [
-            {
-              resource: "IMAGE",
-              filename: fileName,
-              mimeType: file.type,
-              httpMethod: "POST",
-            }
-          ]
-        }
-      }
-    );
+    //   const stagedUploadsImage = await admin.graphql(
+    //     `#graphql
+    //   mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
+    //   stagedUploadsCreate(input: $input) {
+    //     stagedTargets {
+    //       url
+    //       resourceUrl
+    //       parameters {
+    //         name
+    //         value
+    //       }
+    //     }
+    //     userErrors {
+    //       field
+    //       message
+    //     }
+    //   }
+    // }`,
+    //     {
+    //       variables: {
+    //         "input": [
+    //           {
+    //             resource: "IMAGE",
+    //             filename: fileName,
+    //             mimeType: file.type,
+    //             httpMethod: "POST",
+    //           }
+    //         ]
+    //       }
+    //     }
+    //   );
 
-    const result = await stagedUploadsImage.json();
-    const target = result?.data?.stagedUploadsCreate?.stagedTargets?.[0];
+    //   const result = await stagedUploadsImage.json();
+    //   const target = result?.data?.stagedUploadsCreate?.stagedTargets?.[0];
 
-    if (!target) {
-      console.error("Staged upload failed: Either the user hasn't uploaded an image or ", result?.data?.stagedUploadsCreate?.userErrors);
-      return json({ success: false, error: "Failed to create staged upload" }, { status: 500 });
-    }
+    //   if (!target) {
+    //     console.error("Staged upload failed: Either the user hasn't uploaded an image or ", result?.data?.stagedUploadsCreate?.userErrors);
+    //     return json({ success: false, error: "Failed to create staged upload" }, { status: 500 });
+    //   }
 
-    const uploadForm = new FormData();
-    target.parameters.forEach(param => {
-      uploadForm.append(param.name, param.value);
-    });
+    //   const uploadForm = new FormData();
+    //   target.parameters.forEach(param => {
+    //     uploadForm.append(param.name, param.value);
+    //   });
 
-    uploadForm.append("file", file, fileName);
+    //   uploadForm.append("file", file, fileName);
 
-    const uploadImage = await fetch(target.url, {
-      method: "POST",
-      body: uploadForm,
-    })
+    //   const uploadImage = await fetch(target.url, {
+    //     method: "POST",
+    //     body: uploadForm,
+    //   })
 
-    if (!uploadImage.ok) {
-      console.error("Failed to upload file to S3:", await uploadImage.text());
-      return json({ success: false, error: "Failed to upload file to storage" }, { status: 500 });
-    }
+    //   if (!uploadImage.ok) {
+    //     console.error("Failed to upload file to S3:", await uploadImage.text());
+    //     return json({ success: false, error: "Failed to upload file to storage" }, { status: 500 });
+    //   }
 
     const uploadsImage = await admin.graphql(
       `#graphql
@@ -294,7 +295,7 @@ export const action = async ({ request, params }) => {
         variables: {
           "files": [
             {
-              originalSource: target.resourceUrl,
+              originalSource: file,
             },
           ],
         }
@@ -303,8 +304,8 @@ export const action = async ({ request, params }) => {
 
     const uploadsImageResult = await uploadsImage.json();
     console.log(uploadsImageResult);
-    const created = uploadsImageResult?.data?.fileCreate?.files?.[0];
-    const imageId = created?.id;
+    imageId = uploadsImageResult?.data?.fileCreate?.files?.[0]?.id || "";
+
 
     if (!imageId) {
       return json({ success: false, error: "Failed to get image ID" }, { status: 500 });
@@ -320,7 +321,7 @@ export const action = async ({ request, params }) => {
       eye: formData.get("eye"),
       productId: formData.get("productId"),
       variantId: formData.get("variantId"),
-      imageUrl: imageId ? imageId : "",
+      imageUrl: imageId,
       createdAt: formData.get("createdAt"),
       expiredAt: formData.get("expiredAt"),
       shop,
@@ -418,9 +419,6 @@ export default function StaticQRPage() {
     try {
       await submitTimeout();
 
-      setLoading("QR_Target", false);
-      setLoading("QR_Settings", false);
-      setLoading("QR_Customizations", false);
       if (actionData?.success === false) {
         shopify.toast.show("Something went wrong.", {
           isError: true,
@@ -430,15 +428,15 @@ export default function StaticQRPage() {
         shopify.toast.show("Saved.");
       }
     } catch (err) {
-      setLoading("QR_Target", false);
-      setLoading("QR_Settings", false);
-      setLoading("QR_Customizations", false);
-
       console.error("Something went wrong: ", err);
       shopify.toast.show("There was an error while creating the QR code.", {
         isError: true,
         duration: 2000
       });
+    } finally {
+      setLoading("QR_Target", false);
+      setLoading("QR_Settings", false);
+      setLoading("QR_Customizations", false);
     }
   }
 
