@@ -54,6 +54,7 @@ export const action = async ({ request, params }) => {
   const { shop } = session;
   const uniqueId = uuidv4();
 
+  // Images uploading function
   const uploadHandler = unstable_createMemoryUploadHandler({
     maxPartSize: 5_000_000,
   });
@@ -63,7 +64,7 @@ export const action = async ({ request, params }) => {
     uploadHandler
   );
 
-  if (!file || typeof file !== "object") {
+  if (!file || file !== "object") {
     return json(
       { success: false, error: "No image uploaded" },
       { status: 400 }
@@ -98,7 +99,7 @@ export const action = async ({ request, params }) => {
             {
               resource: "IMAGE",
               filename: fileName,
-              const mimeType = file.type || "image/png",
+              mimeType: file.type,
               httpMethod: "POST",
             }
           ]
@@ -109,10 +110,10 @@ export const action = async ({ request, params }) => {
     const result = await stagedUploadsImage.json();
     const target = result?.data?.stagedUploadsCreate?.stagedTargets?.[0];
 
-    if (!target) {
-      console.error("Staged upload failed: Either the user hasn't uploaded an image or ", result?.data?.stagedUploadsCreate?.userErrors);
-      return json({ success: false, error: "Failed to create staged upload" }, { status: 500 });
-    }
+    // if (!target) {
+    //   console.error("Staged upload failed: Either the user hasn't uploaded an image or ", result?.data?.stagedUploadsCreate?.userErrors);
+    //   return json({ success: false, error: "Failed to create staged upload" }, { status: 500 });
+    // }
 
     const uploadForm = new FormData();
     target.parameters.forEach(param => {
@@ -126,10 +127,10 @@ export const action = async ({ request, params }) => {
       body: uploadForm,
     })
 
-    if (!uploadImage.ok) {
-      console.error("Failed to upload file to S3:", await uploadImage.text());
-      return json({ success: false, error: "Failed to upload file to storage" }, { status: 500 });
-    }
+    // if (!uploadImage.ok) {
+    //   console.error("Failed to upload file to S3:", await uploadImage.text());
+    //   return json({ success: false, error: "Failed to upload file to storage" }, { status: 500 });
+    // }
 
     const uploadsImage = await admin.graphql(
       `#graphql
@@ -163,9 +164,9 @@ export const action = async ({ request, params }) => {
     const created = uploadsImageResult?.data?.fileCreate?.files?.[0];
     const imageId = created?.id;
 
-    if (!imageId) {
-      return json({ success: false, error: "Failed to get image ID" }, { status: 500 });
-    }
+    // if (!imageId) {
+    //   return json({ success: false, error: "Failed to get image ID" }, { status: 500 });
+    // }
 
     const data = {
       title: formData.get("title"),
