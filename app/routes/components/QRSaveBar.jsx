@@ -103,7 +103,6 @@ export default function GlobalSaveBar({ saveData }) {
                 }
         }
 
-        // If we reach here, validation passed
         shopify.toast.show("Saving... Please do not close the browser.");
         setLoading("QR_Target", true);
         setLoading("QR_Settings", true);
@@ -152,10 +151,8 @@ export default function GlobalSaveBar({ saveData }) {
             formData.append("variantId", qrVariantId || "");
             formData.append("createdAt", currentDate);
             formData.append("expiredAt", currentDate);
-            // This is the "Cheat" - sending the URL string, not the file
             formData.append("shopifyResourceUrl", shopifyResourceUrl);
 
-            // Submit to Remix action
             await submit(formData, { method: "post" });
             shopify.toast.show("Saved.");
 
