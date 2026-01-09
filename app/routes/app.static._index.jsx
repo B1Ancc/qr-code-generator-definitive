@@ -9,7 +9,7 @@ import QRCard from "./components/QRCard";
 import { v4 as uuidv4 } from 'uuid';
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { json } from "@remix-run/node";
+import { json, unstable_createMemoryUploadHandler, unstable_parseMultipartFormData } from "@remix-run/node";
 
 import { useActionData, useLoaderData } from "@remix-run/react";
 
@@ -55,7 +55,15 @@ export const action = async ({ request, params }) => {
   const uniqueId = uuidv4();
 
   // Images uploading function
-  const formData = await request.formData();
+  const uploadHandler = unstable_createMemoryUploadHandler({
+    maxPartSize: 5_000_000,
+  });
+
+  const formData = await unstable_parseMultipartFormData(
+    request,
+    uploadHandler
+  );
+
   const file = formData.get("imageUrl");
   if (file) {
     const fileName = file.name;
