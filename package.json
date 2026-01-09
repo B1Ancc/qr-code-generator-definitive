@@ -4,7 +4,7 @@
   "version": "26w2mJAa",
   "private": true,
   "scripts": {
-    "build": "prisma generate && remix vite:build",
+    "build": "prisma generate && prisma db push && remix vite:build",
     "dev": "shopify app dev",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",
