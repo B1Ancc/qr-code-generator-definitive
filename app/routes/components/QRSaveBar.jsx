@@ -115,6 +115,37 @@ export default function GlobalSaveBar({ saveData }) {
                 setLoading("QR_Settings", true);
                 setLoading("QR_Customizations", true);
 
+                let shopifyResourceUrl = "";
+
+                try {
+                    if (file && file instanceof File) {
+                        const imageFormData = new FormData();
+                        imageFormData.append("filename", file.name);
+                        imageFormData.append("mimeType", file.type);
+
+                        const imageResponse = await fetch("/api/sign-upload", {
+                            method: "POST",
+                            body: imageFormData
+                        });
+
+                        const imageData = await imageResponse.json();
+                        const target = imageData.data.stagedUploadsCreate.stagedTargets[0];
+
+                        const uploadForm = new FormData();
+                        target.parameters.forEach(p => uploadForm.append(p.name, p.value));
+                        uploadForm.append("file", file);
+
+                        const uploadResult = await fetch(target.url, {
+                            method: "POST",
+                            body: uploadForm,
+                        });
+
+                        if (!uploadResult.ok) throw new Error("Image upload failed");
+
+                        shopifyResourceUrl = target.resourceUrl;
+                    }
+                }
+
                 const currentDate = new Date().toISOString();
 
                 const formData = new FormData();
@@ -129,11 +160,12 @@ export default function GlobalSaveBar({ saveData }) {
                 formData.append("variantId", qrVariantId || "");
                 formData.append("createdAt", currentDate);
                 formData.append("expiredAt", currentDate);
+                formData.append("imageUrl", shopifyResourceUrl)
 
-                if (file) {
-                    const imageFile = new File([file], "qr.png", { type: file.type });
-                    formData.append("imageUrl", imageFile);
-                }
+                // if (file) {
+                //     const imageFile = new File([file], "qr.png", { type: file.type });
+                //     formData.append("imageUrl", imageFile);
+                // }
 
                 const submitTimeout = () => new Promise((resolve, reject) => {
                     setTimeout(async () => {

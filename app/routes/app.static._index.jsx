@@ -57,66 +57,62 @@ export const action = async ({ request, params }) => {
   // Images uploading function
   const formData = await request.formData();
   const file = formData.get("imageUrl");
+  let imageId = "";
+
   if (file) {
-    const fileName = file.name;
+  //   const fileName = file.name;
 
-    const stagedUploadsImage = await admin.graphql(
-      `#graphql
-    mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
-    stagedUploadsCreate(input: $input) {
-      stagedTargets {
-        url
-        resourceUrl
-        parameters {
-          name
-          value
-        }
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }`,
-      {
-        variables: {
-          "input": [
-            {
-              resource: "IMAGE",
-              filename: fileName,
-              mimeType: file.type,
-              httpMethod: "POST",
-            }
-          ]
-        }
-      }
-    );
+  //   const stagedUploadsImage = await admin.graphql(
+  //     `#graphql
+  //   mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
+  //   stagedUploadsCreate(input: $input) {
+  //     stagedTargets {
+  //       url
+  //       resourceUrl
+  //       parameters {
+  //         name
+  //         value
+  //       }
+  //     }
+  //     userErrors {
+  //       field
+  //       message
+  //     }
+  //   }
+  // }`,
+  //     {
+  //       variables: {
+  //         "input": [
+  //           {
+  //             resource: "IMAGE",
+  //             filename: fileName,
+  //             mimeType: file.type,
+  //             httpMethod: "POST",
+  //           }
+  //         ]
+  //       }
+  //     }
+  //   );
 
-    const result = await stagedUploadsImage.json();
-    const target = result?.data?.stagedUploadsCreate?.stagedTargets?.[0];
+  //   const result = await stagedUploadsImage.json();
+  //   const target = result?.data?.stagedUploadsCreate?.stagedTargets?.[0];
 
     // if (!target) {
     //   console.error("Staged upload failed: Either the user hasn't uploaded an image or ", result?.data?.stagedUploadsCreate?.userErrors);
     //   return json({ success: false, error: "Failed to create staged upload" }, { status: 500 });
     // }
 
-    const uploadForm = new FormData();
-    target.parameters.forEach(param => {
-      uploadForm.append(param.name, param.value);
-    });
+    // const uploadForm = new FormData();
+    // target.parameters.forEach(param => {
+    //   uploadForm.append(param.name, param.value);
+    // });
 
-    const arrayBuffer = await file.arrayBuffer();
+    // uploadForm.append("file", file, fileName);
 
-    uploadForm.append(
-      "file",
-      new Blob([arrayBuffer], { type: file.type }),
-      file.name
-    );
-    
-    const uploadImage = await fetch(target.url, {
-      method: "POST",
-      body: uploadForm,
-    })
+    // const uploadImage = await fetch(target.url, {
+    //   method: "POST",
+    //   body: uploadForm,
+    // })
 
     // if (!uploadImage.ok) {
     //   console.error("Failed to upload file to S3:", await uploadImage.text());
@@ -143,7 +139,7 @@ export const action = async ({ request, params }) => {
         variables: {
           "files": [
             {
-              originalSource: target.resourceUrl,
+              originalSource: file,
             },
           ],
         }
@@ -152,8 +148,7 @@ export const action = async ({ request, params }) => {
 
     const uploadsImageResult = await uploadsImage.json();
     console.log(uploadsImageResult);
-    const created = uploadsImageResult?.data?.fileCreate?.files?.[0];
-    const imageId = created?.id;
+    imageId = uploadsImageResult?.data?.fileCreate?.files?.[0]?.id || "";
 
     // if (!imageId) {
     //   return json({ success: false, error: "Failed to get image ID" }, { status: 500 });
