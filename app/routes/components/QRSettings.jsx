@@ -46,7 +46,7 @@ export default function QRSettings({ settingsData }) {
             setLoading("QR_Settings", false);
         }
         init();
-    }, [qrSettingsContext]);
+    }, []);
 
     const { qrName, setQRName, initialQRName, setInitialQRName } = qrSettingsContext;
 
@@ -60,7 +60,7 @@ export default function QRSettings({ settingsData }) {
             }
         }
         init();
-    }, [settingsData])
+    }, [])
 
     function handleInputValueChange() {
         console.log("handleInputValueChange");

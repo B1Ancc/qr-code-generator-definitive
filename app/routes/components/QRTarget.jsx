@@ -40,7 +40,7 @@ export default function QRTarget({ targetData }) {
             setLoading("QR_Target", false);
         }
         init();
-    }, [qrTargetContext]);
+    }, []);
 
     const {
         selected,
@@ -87,7 +87,7 @@ export default function QRTarget({ targetData }) {
             }
         }
         init();
-    }, [targetData]);
+    }, []);
 
     useEffect(() => {
         setQRDestination();
