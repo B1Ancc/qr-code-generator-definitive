@@ -35,5 +35,6 @@ export const action = async ({ request }) => {
     }
   );
 
-  return json(await stagedUploadsImage.json());
+  const resJson = await stagedUploadsImage.json();  
+  return json(resJson);
 };

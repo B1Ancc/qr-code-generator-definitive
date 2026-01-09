@@ -151,7 +151,7 @@ export default function GlobalSaveBar({ saveData }) {
             formData.append("variantId", qrVariantId || "");
             formData.append("createdAt", currentDate);
             formData.append("expiredAt", currentDate);
-            formData.append("shopifyResourceUrl", shopifyResourceUrl);
+            formData.append("imageUrl", shopifyResourceUrl);
 
             await submit(formData, { method: "post" });
             shopify.toast.show("Saved.");
