@@ -3,7 +3,7 @@
   "version": "25w4mAUb",
   "private": true,
   "scripts": {
-    "build": "remix vite:build",
+    "build": "prisma generate && remix vite:build",
     "dev": "shopify app dev --tunnel-url=https://apparent-alive-ibex.ngrok-free.app:3000",
     "ngrok": "ngrok http 3000 --url https://apparent-alive-ibex.ngrok-free.app",
     "config:link": "shopify app config link",
