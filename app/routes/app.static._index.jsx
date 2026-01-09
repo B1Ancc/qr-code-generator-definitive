@@ -60,42 +60,42 @@ export const action = async ({ request, params }) => {
   let imageId = "";
 
   if (file) {
-  //   const fileName = file.name;
+    //   const fileName = file.name;
 
-  //   const stagedUploadsImage = await admin.graphql(
-  //     `#graphql
-  //   mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
-  //   stagedUploadsCreate(input: $input) {
-  //     stagedTargets {
-  //       url
-  //       resourceUrl
-  //       parameters {
-  //         name
-  //         value
-  //       }
-  //     }
-  //     userErrors {
-  //       field
-  //       message
-  //     }
-  //   }
-  // }`,
-  //     {
-  //       variables: {
-  //         "input": [
-  //           {
-  //             resource: "IMAGE",
-  //             filename: fileName,
-  //             mimeType: file.type,
-  //             httpMethod: "POST",
-  //           }
-  //         ]
-  //       }
-  //     }
-  //   );
+    //   const stagedUploadsImage = await admin.graphql(
+    //     `#graphql
+    //   mutation stagedUploadsCreate($input: [StagedUploadInput!]!) {
+    //   stagedUploadsCreate(input: $input) {
+    //     stagedTargets {
+    //       url
+    //       resourceUrl
+    //       parameters {
+    //         name
+    //         value
+    //       }
+    //     }
+    //     userErrors {
+    //       field
+    //       message
+    //     }
+    //   }
+    // }`,
+    //     {
+    //       variables: {
+    //         "input": [
+    //           {
+    //             resource: "IMAGE",
+    //             filename: fileName,
+    //             mimeType: file.type,
+    //             httpMethod: "POST",
+    //           }
+    //         ]
+    //       }
+    //     }
+    //   );
 
-  //   const result = await stagedUploadsImage.json();
-  //   const target = result?.data?.stagedUploadsCreate?.stagedTargets?.[0];
+    //   const result = await stagedUploadsImage.json();
+    //   const target = result?.data?.stagedUploadsCreate?.stagedTargets?.[0];
 
     // if (!target) {
     //   console.error("Staged upload failed: Either the user hasn't uploaded an image or ", result?.data?.stagedUploadsCreate?.userErrors);
@@ -150,9 +150,9 @@ export const action = async ({ request, params }) => {
     console.log(uploadsImageResult);
     imageId = uploadsImageResult?.data?.fileCreate?.files?.[0]?.id || "";
 
-    // if (!imageId) {
-    //   return json({ success: false, error: "Failed to get image ID" }, { status: 500 });
-    // }
+    if (!imageId) {
+      return json({ success: false, error: "Failed to get image ID" }, { status: 500 });
+    }
 
     const data = {
       title: formData.get("title"),
@@ -164,7 +164,7 @@ export const action = async ({ request, params }) => {
       eye: formData.get("eye"),
       productId: formData.get("productId"),
       variantId: formData.get("variantId"),
-      imageUrl: imageId ? imageId : "",
+      imageUrl: imageId,
       createdAt: formData.get("createdAt"),
       expiredAt: formData.get("expiredAt"),
       shop,
