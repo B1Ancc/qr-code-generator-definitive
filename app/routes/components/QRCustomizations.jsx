@@ -106,7 +106,7 @@ export default function QRCustomizations({ customData }) {
             setLoading("QR_Customizations", false);
         }
         init();
-    }, [qrCustomizationsContext]);
+    }, []);
 
     const {
         selectedForegroundColor,
@@ -147,7 +147,7 @@ export default function QRCustomizations({ customData }) {
             }
         }
         init();
-    }, [customData]);
+    }, []);
 
     useEffect(() => {
         if (customData.imageData == "200") {
