@@ -11,15 +11,22 @@ datasource db {
 }
 
 model Session {
-  sessionId   String    @id @default(auto()) @map("_id") @db.ObjectId
-  id          String    @unique
-  shop        String
-  state       String
-  isOnline    Boolean   @default(false)
-  scope       String?
-  expires     DateTime?
-  accessToken String
-  userId      BigInt?
+  sessionId     String    @id @default(auto()) @map("_id") @db.ObjectId
+  id            String    @unique
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
 }
 
 model QRCode {
