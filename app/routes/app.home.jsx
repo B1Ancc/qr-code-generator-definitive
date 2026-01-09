@@ -1,19 +1,24 @@
-import { BlockStack, Card, DataTable, Divider, FooterHelp, Grid, InlineStack, Link, Page, Text } from "@shopify/polaris";
+import { BlockStack, Button, Card, DataTable, Divider, FooterHelp, Grid, InlineStack, Link, Page, Text } from "@shopify/polaris";
 import Footer from "./components/Footer";
 import { authenticate } from "../shopify.server";
 import { useLoaderData } from "@remix-run/react";
 import db from "../db.server"
+import { useState } from "react";
+import { dateTimeFormat } from "./utils/dateTimeFormat";
 
 export const loader = async ({ request }) => {
     const { session } = await authenticate.admin(request);
     const { shop } = session;
-    const data = await db.qRCode.findMany(
+    const rows = await db.qRCode.findMany(
         {
             take: 5,
             orderBy: {
                 createdAt: 'desc'
             },
-            where: { shop },
+            where: {
+                shop,
+                isDeleted: false,
+            },
             select: {
                 title: true,
                 endpoint: true,
@@ -22,22 +27,54 @@ export const loader = async ({ request }) => {
             }
         }
     );
-    return data ?? null;
+    const settingsData = await db.settings.findFirst(
+        {
+            where: {
+                shop
+            },
+            select: {
+                timeFormat: true,
+                hourFormat: true,
+                dateFormat: true,
+                dateStringFormat: true,
+            }
+        }
+    );
+    const settings = {
+        timeFormat: settingsData ? settingsData.timeFormat : "short",
+        hourFormat: settingsData ? settingsData.hourFormat : "12h",
+        dateFormat: settingsData ? settingsData.dateFormat : "dmy",
+        dateStringFormat: settingsData ? settingsData.dateStringFormat : "short",
+    }
+    return {
+        rows,
+        settings,
+    };
 };
 
+
+
 export default function Home() {
-    const rows = useLoaderData();
+    const [isHovered, setIsHovered] = useState(false);
+    const buttonStyle = {
+        color: 'white',
+        border: 'none',
+        width: '80%',
+        height: '80%',
+    };
+    const { rows, settings } = useLoaderData();
     const row = rows.map(({ title, endpoint, type, createdAt }) => {
         const date = new Date(createdAt);
-        const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-
-        return [title, endpoint, type, formattedDate];
+        const formattedDate = dateTimeFormat(date, settings);
+        const formattedTitle = title.length >= 28 ? `${title.slice(0, 28)}...` : title;
+        return [formattedTitle, endpoint, type, formattedDate];
     });
 
     return (
         <>
             <Page title="QR Codes Generator Definitive" subtitle="Create a QR code instantly. Access them whenever you want, wherever you go.">
                 <BlockStack gap="200">
+                {row ?
                     <Card>
                         <Text variant="headingMd" as="h6">
                             Recent created QR codes
@@ -53,31 +90,49 @@ export default function Home() {
                                 'Name',
                                 'Endpoint',
                                 'Type',
-                                'Created at',
+                                'Last modified',
                             ]}
 
                             rows={row}
                         >
                         </DataTable>
-                    </Card>
+                    </Card> : <Text></Text>
+                    }
                     <Grid columns={3}>
                         <Grid.Cell columnSpan={{ xs: 4, sm: 2, md: 2, lg: 4, xl: 4 }}>
                             <Card>
-                                <InlineStack align="center">
-                                    <img src="/assets/qr-type/dots.png" width="100%" height="100%" objectFit="contain"></img>
+                                <BlockStack inlineAlign="center" gap="100">
+                                    <img
+                                        style={buttonStyle}
+                                        src="/assets/menu-options/create.png"
+                                    />
                                     <Divider />
-                                    <Link url="/app/static">Create a QR code</Link>
-                                </InlineStack>
+                                    <Button url="/app/static">Create a QR code</Button>
+                                </BlockStack>
                             </Card>
                         </Grid.Cell>
                         <Grid.Cell columnSpan={{ xs: 4, sm: 2, md: 2, lg: 4, xl: 4 }}>
                             <Card>
-                                <Link url="/app/list">See your QR codes</Link>
+                                <BlockStack inlineAlign="center" gap="100">
+                                    <img
+                                        style={buttonStyle}
+                                        src="/assets/menu-options/list.png"
+                                    />
+                                    <Divider />
+                                    <Button url="/app/list">View your QR codes' list</Button>
+                                </BlockStack>
                             </Card>
                         </Grid.Cell>
                         <Grid.Cell columnSpan={{ xs: 4, sm: 2, md: 2, lg: 4, xl: 4 }}>
                             <Card>
-                                <Link url="/app/settings">Settings</Link>
+                                <BlockStack inlineAlign="center" gap="100">
+                                    <img
+                                        style={buttonStyle}
+                                        src="/assets/menu-options/settings.png"
+                                    />
+                                    <Divider />
+                                    <Button url="/app/settings">Settings</Button>
+                                </BlockStack>
                             </Card>
                         </Grid.Cell>
                     </Grid>

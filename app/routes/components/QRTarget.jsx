@@ -2,7 +2,7 @@ import { BlockStack, Button, Card, Divider, Image, InlineGrid, InlineStack, Link
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 import QRTargetContext from "../contexts/QRTargetContext";
-import GlobalSaveBar from "./GlobalSaveBar";
+import GlobalSaveBar from "./QRSaveBar";
 import Loading from "./Loading";
 import { useQRLoadingContext } from "../contexts/QRLoadingContext"
 

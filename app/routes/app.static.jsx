@@ -15,11 +15,7 @@ export default function StaticLayout() {
       <QRTargetProvider>
         <QRSettingsProvider>
           <QRCustomizationsProvider>
-            <Page title="Static QR Codes Generator" subtitle="Create a QR code instantly (without trackers).">
-              <BlockStack gap="200">
-                <Outlet />
-              </BlockStack>
-            </Page >
+            <Outlet />
             <Footer />
           </QRCustomizationsProvider>
         </QRSettingsProvider>

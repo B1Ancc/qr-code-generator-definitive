@@ -21,13 +21,17 @@ import { authenticate } from "../shopify.server";
 import { useLoaderData } from "@remix-run/react";
 import { useCallback, useEffect, useState } from "react";
 import Loading from "./components/Loading";
+import { dateTimeFormat } from "./utils/dateTimeFormat";
 
 export const loader = async ({ request }) => {
   const { session } = await authenticate.admin(request);
   const { shop } = session;
-  const data = await db.qRCode.findMany(
+  const rows = await db.qRCode.findMany(
     {
-      where: { shop },
+      where: { 
+        shop,
+        isDeleted: false,
+       },
       select: {
         id: true,
         destination: true,
@@ -41,18 +45,43 @@ export const loader = async ({ request }) => {
       }
     }
   );
-  return data ?? null;
+
+  const settingsData = await db.settings.findFirst(
+    {
+      where: {
+        shop
+      },
+      select: {
+        timeFormat: true,
+        hourFormat: true,
+        dateFormat: true,
+        dateStringFormat: true,
+      }
+    }
+  );
+
+  const settings = {
+    timeFormat: settingsData ? settingsData.timeFormat : "short",
+    hourFormat: settingsData ? settingsData.hourFormat : "12h",
+    dateFormat: settingsData ? settingsData.dateFormat : "dmy",
+    dateStringFormat: settingsData ? settingsData.dateStringFormat : "short",
+  }
+
+  return {
+    rows,
+    settings
+  };
 };
 
 export default function ListPage() {
-  const rows = useLoaderData();
+  const { rows, settings } = useLoaderData();
   const [pageLoading, setPageLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [filteredRows, setFilteredRows] = useState(rows);
   const [queryValue, setQueryValue] = useState();
   const [qrType, setQRType] = useState();
   const [qrEndpoint, setQREndpoint] = useState();
-  const [paginationNumber, setPaginationNumber] = useState(1);
+  const [pageNumber, setPageNumber] = useState(1);
 
   useEffect(() => {
     const init = async () => {
@@ -112,12 +141,12 @@ export default function ListPage() {
   }
 
   const handlePaginationNext = () => {
-    setPaginationNumber(paginationNumber + 1);
+    setPageNumber(pageNumber + 1);
   }
 
   const handlePaginationPrevious = () => {
-    if (paginationNumber > 1) {
-      setPaginationNumber(paginationNumber - 1);
+    if (pageNumber > 1) {
+      setPageNumber(pageNumber - 1);
     }
   }
 
@@ -230,7 +259,7 @@ export default function ListPage() {
     .map(
       ({ id, title, destination, endpoint, type, createdAt }) => {
         const date = new Date(createdAt);
-        const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        const formattedDate = dateTimeFormat(date, settings);
 
         return (
           <IndexTable.Row
@@ -264,50 +293,50 @@ export default function ListPage() {
       <TitleBar title="Your QR codes" />
       <Card>
         <BlockStack gap="200">
-        <Filters
-          queryValue={queryValue}
-          queryPlaceholder="Search a QR code(s) by name or its content"
-          filters={filters}
-          appliedFilters={appliedFilters}
-          onQueryChange={handleFiltersQueryChange}
-          onClearAll={handleFiltersClearAll}
-          loading={isLoading}
-        />
-        {pageLoading ?
-          <Loading />
-          :
-          (row.length !== 0 ?
-            <IndexTable
-              resourceName={resourceName}
-              itemCount={row.length}
-              headings={[
-                { title: 'Name' },
-                { title: 'Endpoint' },
-                { title: 'Type' },
-                { title: 'Last modified' },
-              ]}
-              selectable={false}
-              pagination={{
-                hasNext: paginationNumber <= Math.floor(row.length / 25),
-                hasPrevious: paginationNumber > 1,
-                onNext: handlePaginationNext,
-                onPrevious: handlePaginationPrevious,
-                label: paginationNumber,
-              }}
-            >
-              {row.slice((paginationNumber - 1) * 25, paginationNumber * 25)}
-            </IndexTable>
+          <Filters
+            queryValue={queryValue}
+            queryPlaceholder="Search a QR code(s) by name or its content"
+            filters={filters}
+            appliedFilters={appliedFilters}
+            onQueryChange={handleFiltersQueryChange}
+            onClearAll={handleFiltersClearAll}
+            loading={isLoading}
+          />
+          {pageLoading ?
+            <Loading />
             :
-            <BlockStack inlineAlign="center" gap="200">
-              <Text fontWeight="headingLg" as="h5">
-                There's nothing here...
-              </Text>
-              <Text fontWeight="bodyLg" as="p">
-                Maybe you could try to create some QR codes first?
-              </Text>
-            </BlockStack>
-          )
-        }
+            (row.length !== 0 ?
+              <IndexTable
+                resourceName={resourceName}
+                itemCount={row.length}
+                headings={[
+                  { title: 'Name' },
+                  { title: 'Endpoint' },
+                  { title: 'Type' },
+                  { title: 'Last modified' },
+                ]}
+                selectable={false}
+                pagination={{
+                  hasNext: pageNumber <= Math.floor(row.length / 25),
+                  hasPrevious: pageNumber > 1,
+                  onNext: handlePaginationNext,
+                  onPrevious: handlePaginationPrevious,
+                  label: pageNumber,
+                }}
+              >
+                {row.slice((pageNumber - 1) * 25, pageNumber * 25)}
+              </IndexTable>
+              :
+              <BlockStack inlineAlign="center" gap="200">
+                <Text fontWeight="headingLg" as="h5">
+                  There's nothing here...
+                </Text>
+                <Text fontWeight="bodyLg" as="p">
+                  Maybe you could try to create some QR codes first?
+                </Text>
+              </BlockStack>
+            )
+          }
         </BlockStack>
       </Card>
       <Footer />

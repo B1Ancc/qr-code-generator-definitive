@@ -1,18 +1,22 @@
 import {
+  Button,
   Card,
   EmptyState,
   Grid,
   Link,
+  Page,
   Text,
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import QRStaticPage from "./components/QRStaticPage";
 import QRCard from "./components/QRCard";
-import { isRouteErrorResponse, redirect, useActionData, useLoaderData, useRouteError } from "@remix-run/react";
+import { isRouteErrorResponse, redirect, useActionData, useLoaderData, useNavigate, useRouteError, useSubmit } from "@remix-run/react";
 import db from "../db.server"
 import { useEffect } from "react";
 import Error404 from "./components/Error404";
 import { json } from "@remix-run/node";
+import { useQRLoadingContext } from "./contexts/QRLoadingContext";
+import { dateTimeFormat } from "./utils/dateTimeFormat";
 
 export const loader = async ({ request, params }) => {
   const { admin, session, redirect } = await authenticate.admin(request);
@@ -37,10 +41,32 @@ export const loader = async ({ request, params }) => {
         productId: true,
         variantId: true,
         imageUrl: true,
-        isDeleted: true
+        isDeleted: true,
+        createdAt: true
       }
     }
   );
+
+  const settingsData = await db.settings.findFirst(
+    {
+      where: {
+        shop
+      },
+      select: {
+        timeFormat: true,
+        hourFormat: true,
+        dateFormat: true,
+        dateStringFormat: true,
+      }
+    }
+  );
+
+  const settings = {
+    timeFormat: settingsData ? settingsData.timeFormat : "short",
+    hourFormat: settingsData ? settingsData.hourFormat : "12h",
+    dateFormat: settingsData ? settingsData.dateFormat : "dmy",
+    dateStringFormat: settingsData ? settingsData.dateStringFormat : "short",
+  }
 
   if (!data || data.isDeleted === true) {
     throw new Response("Failed to get data!", { status: 404 });
@@ -158,13 +184,15 @@ export const loader = async ({ request, params }) => {
       return {
         data,
         imageData,
+        settings,
       };
     } else {
       const imageData = "";
 
       return {
         data,
-        imageData
+        imageData,
+        settings,
       }
     }
   } catch (err) {
@@ -173,7 +201,8 @@ export const loader = async ({ request, params }) => {
     const imageData = "200";
     return {
       data,
-      imageData
+      imageData,
+      settings,
     }
   }
 };
@@ -327,13 +356,26 @@ export const action = async ({ request, params }) => {
     };
 
     try {
-      const updateQRCode = await db.qRCode.update({
-        where: {
-          id: params.id,
-        },
-        data
-      });
-      return json({ success: true, message: "QR updated successfully" });
+      if (request.method === "POST") {
+        const updateQRCode = await db.qRCode.update({
+          where: {
+            id: params.id,
+          },
+          data
+        });
+        return json({ success: true, message: "QR updated successfully" });
+      }
+      else {
+        const deleteQRCode = await db.qRCode.update({
+          where: {
+            id: params.id,
+          },
+          data: {
+            isDeleted: true,
+          }
+        });
+        return json({ success: true, message: "QR deleted successfully" });
+      }
     } catch (err) {
       console.error("There was an error while updating the QR: ", err);
       return json({ success: false, error: "Failed to update QR code" }, { status: 500 });
@@ -342,21 +384,78 @@ export const action = async ({ request, params }) => {
 }
 
 export default function StaticQRPage() {
-  const { data, imageData } = useLoaderData();
+  const { data, imageData, settings } = useLoaderData();
   const actionData = useActionData();
 
+  const { loadingStates, setLoading } = useQRLoadingContext();
+  const submit = useSubmit();
+  const navigate = useNavigate();
+
+  const handleDelete = async () => {
+    shopify.toast.show("Deleting... Please do not close the browser during this time.")
+    setLoading("QR_Target", true)
+    setLoading("QR_Settings", true);
+    setLoading("QR_Customizations", true);
+
+    const formData = new FormData();
+    formData.append("isDeleted", true);
+
+    const submitTimeout = () => new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          const submitData = await submit(formData, {
+            method: "delete",
+            encType: "multipart/form-data",
+          });
+          resolve(submitData);
+        } catch (err) {
+          reject(err)
+        }
+      }, 5000);
+    });
+
+    try {
+      await submitTimeout();
+
+      setLoading("QR_Target", false);
+      setLoading("QR_Settings", false);
+      setLoading("QR_Customizations", false);
+      if (actionData?.success === false) {
+        shopify.toast.show("Something went wrong.", {
+          isError: true,
+          duration: 2000
+        });
+      } else {
+        shopify.toast.show("Saved.");
+        navigate("/app");
+      }
+    } catch (err) {
+      setLoading("QR_Target", false);
+      setLoading("QR_Settings", false);
+      setLoading("QR_Customizations", false);
+
+      console.error("Something went wrong: ", err);
+      shopify.toast.show("There was an error while creating the QR code.", {
+        isError: true,
+        duration: 2000
+      });
+    }
+  }
+
+  const date = new Date(data.createdAt);
+  const dateModifiedString = `Last modified: ${dateTimeFormat(date, settings)}`
+
   return (
-    <Grid>
-      <Grid.Cell columnSpan={{ xs: 8, sm: 4, md: 4, lg: 8, xl: 8 }}>
-        <QRStaticPage qrData={{ data, imageData, actionData }} />
-      </Grid.Cell>
-      <Grid.Cell columnSpan={{ xs: 4, sm: 2, md: 2, lg: 4, xl: 4 }}>
-        <QRCard />
-      </Grid.Cell>
-    </Grid>
+    <Page
+      backAction={{content: 'List', url: '/app/list'}}
+      title={data.title.length >= 28 ? `${data.title.slice(0, 28)}...` : data.title}
+      subtitle={dateModifiedString}
+      primaryAction={<Button variant="primary" tone="critical" onClick={handleDelete}>Delete</Button>}
+    >
+      <QRStaticPage qrData={{ data, imageData, actionData }} />
+    </Page>
   );
 }
-
 
 export function ErrorBoundary() {
   const caught = useRouteError();

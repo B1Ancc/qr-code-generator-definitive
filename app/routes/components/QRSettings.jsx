@@ -22,7 +22,7 @@ import {
 import { SaveBar } from "@shopify/app-bridge-react";
 import { useSubmit } from "@remix-run/react";
 import QRSettingsContext from "../contexts/QRSettingsContext";
-import GlobalSaveBar from "./GlobalSaveBar";
+import GlobalSaveBar from "./QRSaveBar";
 import Loading from "./Loading";
 import { useQRLoadingContext } from "../contexts/QRLoadingContext";
 

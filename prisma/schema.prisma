@@ -41,3 +41,15 @@ model QRCode {
   expiredAt   DateTime
   isDeleted   Boolean
 }
+
+model Settings {
+  sessionId        String @id @default(auto()) @map("_id") @db.ObjectId
+  id               String @unique
+  shop             String
+  fgColor          String
+  bgColor          String
+  timeFormat       String
+  hourFormat       String
+  dateFormat       String
+  dateStringFormat String
+}

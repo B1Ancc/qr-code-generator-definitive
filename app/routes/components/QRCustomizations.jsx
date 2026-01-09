@@ -16,7 +16,7 @@ import {
 } from "@shopify/polaris";
 import { NoteIcon } from '@shopify/polaris-icons';
 import QRCustomizationsContext from "../contexts/QRCustomizationsContext";
-import GlobalSaveBar from "./GlobalSaveBar";
+import GlobalSaveBar from "./QRSaveBar";
 import { useQRLoadingContext } from "../contexts/QRLoadingContext"
 import Loading from "./Loading";
 

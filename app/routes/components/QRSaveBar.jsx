@@ -71,6 +71,7 @@ export default function GlobalSaveBar({ saveData }) {
             }
             if (hasChange()) {
                 shopify.saveBar.show('my-save-bar');
+                console.log(saveData);
             }
             else {
                 shopify.saveBar.hide('my-save-bar');
@@ -154,7 +155,6 @@ export default function GlobalSaveBar({ saveData }) {
                     setLoading("QR_Target", false);
                     setLoading("QR_Settings", false);
                     setLoading("QR_Customizations", false);
-
                     if (saveData.actionData?.success === false) {
                         shopify.toast.show("Something went wrong.", {
                             isError: true,

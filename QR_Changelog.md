@@ -11,3 +11,6 @@
 - Renamed some components so that they aren't so confusing to work with.
 - Updated **GraphQL API** to *July25* version.
 - Added **QR_Changelog.md**.
+
+## 2025.09.04
+- The filters on the **List** page partially works now, still need to work around the logic.
