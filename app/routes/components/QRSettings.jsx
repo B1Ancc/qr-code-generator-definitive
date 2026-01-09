@@ -22,11 +22,11 @@ import {
 import { SaveBar } from "@shopify/app-bridge-react";
 import { useSubmit } from "@remix-run/react";
 import QRSettingsContext from "../contexts/QRSettingsContext";
-import GlobalSaveBar from "./GlobalSaveBar";
+import GlobalSaveBar from "./QRSaveBar";
 import Loading from "./Loading";
+import { useQRLoadingContext } from "../contexts/QRLoadingContext";
 
 export default function QRSettings({ settingsData }) {
-    const [isLoading, setIsLoading] = useState(true);
     const [visible, setVisible] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [{ month, year }, setDate] = useState({
@@ -36,17 +36,17 @@ export default function QRSettings({ settingsData }) {
     const formattedValue = selectedDate.toISOString().slice(0, 10);
     const datePickerRef = useRef(null);
     const qrSettingsContext = useContext(QRSettingsContext);
+    const { loadingStates, setLoading } = useQRLoadingContext();
+    const isLoading = loadingStates["QR_Settings"] ?? true;
 
     useEffect(() => {
         const init = async () => {
-            if (!qrSettingsContext) {
-                console.log("Loading...")
-            } else {
-                setIsLoading(false);
-            }
+            setLoading("QR_Settings", true);
+            await (qrSettingsContext);
+            setLoading("QR_Settings", false);
         }
         init();
-    }, [qrSettingsContext])
+    }, [qrSettingsContext]);
 
     const { qrName, setQRName, initialQRName, setInitialQRName } = qrSettingsContext;
 
@@ -56,7 +56,7 @@ export default function QRSettings({ settingsData }) {
                 console.log("This is a new QR.");
                 setQRName("");
             } else {
-                setQRName(settingsData.title);
+                setQRName(settingsData.data.title);
             }
         }
         init();
@@ -91,7 +91,6 @@ export default function QRSettings({ settingsData }) {
 
     return (
         <Card>
-            <GlobalSaveBar />
             <BlockStack gap="100">
                 <Text variant="headingMd" as="h6">
                     Settings
@@ -103,8 +102,10 @@ export default function QRSettings({ settingsData }) {
                     placeholder="Optional"
                     maxLength={100}
                     showCharacterCount
+                    disabled={isLoading}
                 />
-                <Popover
+                {/* Expiry date popover */}
+                {/*<Popover
                     active={visible}
                     autofocusTarget="none"
                     preferredAlignment="left"
@@ -133,7 +134,7 @@ export default function QRSettings({ settingsData }) {
                             onChange={handleDateSelection}
                         />
                     </Card>
-                </Popover>
+                </Popover>*/}
             </BlockStack>
         </Card>
     )

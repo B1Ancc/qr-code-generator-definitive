@@ -1,5 +1,6 @@
 {
-  "name": "qr-code-generator-definitive",
+  "name": "QR Code Generator Definitive",
+  "version": "25w4mAUb",
   "private": true,
   "scripts": {
     "build": "remix vite:build",
@@ -30,10 +31,10 @@
     "@remix-run/node": "^2.16.1",
     "@remix-run/react": "^2.16.1",
     "@remix-run/serve": "^2.16.1",
-    "@shopify/app-bridge-react": "^4.1.6",
-    "@shopify/polaris": "^12.0.0",
-    "@shopify/shopify-app-remix": "^3.7.0",
-    "@shopify/shopify-app-session-storage-prisma": "^6.0.0",
+    "@shopify/app-bridge-react": "^4.2.1",
+    "@shopify/polaris": "^13.9.5",
+    "@shopify/shopify-app-remix": "^3.8.5",
+    "@shopify/shopify-app-session-storage-prisma": "^6.0.9",
     "axios": "^1.10.0",
     "isbot": "^5.1.0",
     "prisma": "^6.2.1",
@@ -48,7 +49,7 @@
   "devDependencies": {
     "@remix-run/eslint-config": "^2.16.1",
     "@remix-run/route-config": "^2.16.1",
-    "@shopify/api-codegen-preset": "^1.1.1",
+    "@shopify/api-codegen-preset": "^1.1.9",
     "@types/eslint": "^9.6.1",
     "@types/node": "^22.2.0",
     "@types/react": "^18.2.31",
