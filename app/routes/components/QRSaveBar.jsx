@@ -84,128 +84,88 @@ export default function GlobalSaveBar({ saveData }) {
         shopify.saveBar.hide('my-save-bar');
 
         switch (selected) {
-            case (selected == "Product page" && !qrDestination):
-                shopify.toast.show("Please select a valid product.", {
-                    isError: true,
-                    duration: 2000,
-                });
-                return null;
-            case (selected == "Add to cart" && !qrDestination):
-                shopify.toast.show("Please select a valid product.", {
-                    isError: true,
-                    duration: 2000,
-                });
-                return null;
-            case (selected == "Custom URL" && !qrDestination):
-                shopify.toast.show("Please select a valid product.", {
-                    isError: true,
-                    duration: 2000,
-                });
-                return null;
-            case (!convertedForegroundColor || !convertedBackgroundColor || !selectedPattern || !selectedEye):
-                shopify.toast.show("There was an error while saving the QR code. Please refresh the app and try again.", {
-                    isError: true,
-                    duration: 2000,
-                });
-                console.log("Missing data!");
-                return null;
-            default:
-                shopify.toast.show("Saving... Please do not close the browser during this time.")
-                setLoading("QR_Target", true)
-                setLoading("QR_Settings", true);
-                setLoading("QR_Customizations", true);
-
-                let shopifyResourceUrl = "";
-
-                try {
-                    if (file && file instanceof File) {
-                        const imageFormData = new FormData();
-                        imageFormData.append("filename", file.name);
-                        imageFormData.append("mimeType", file.type);
-
-                        const imageResponse = await fetch("/api/sign-upload", {
-                            method: "POST",
-                            body: imageFormData
-                        });
-
-                        const imageData = await imageResponse.json();
-                        const target = imageData.data.stagedUploadsCreate.stagedTargets[0];
-
-                        const uploadForm = new FormData();
-                        target.parameters.forEach(p => uploadForm.append(p.name, p.value));
-                        uploadForm.append("file", file);
-
-                        const uploadResult = await fetch(target.url, {
-                            method: "POST",
-                            body: uploadForm,
-                        });
-
-                        if (!uploadResult.ok) throw new Error("Image upload failed");
-
-                        shopifyResourceUrl = target.resourceUrl;
-                    }
-                }
-
-                const currentDate = new Date().toISOString();
-
-                const formData = new FormData();
-                formData.append("destination", qrDestination);
-                formData.append("endpoint", selected);
-                formData.append("title", qrName);
-                formData.append("fgColor", convertedForegroundColor);
-                formData.append("bgColor", convertedBackgroundColor);
-                formData.append("pattern", selectedPattern);
-                formData.append("eye", selectedEye);
-                formData.append("productId", qrProductId || "");
-                formData.append("variantId", qrVariantId || "");
-                formData.append("createdAt", currentDate);
-                formData.append("expiredAt", currentDate);
-                formData.append("imageUrl", shopifyResourceUrl)
-
-                // if (file) {
-                //     const imageFile = new File([file], "qr.png", { type: file.type });
-                //     formData.append("imageUrl", imageFile);
-                // }
-
-                const submitTimeout = () => new Promise((resolve, reject) => {
-                    setTimeout(async () => {
-                        try {
-                            const submitData = await submit(formData, {
-                                method: "post",
-                                encType: "multipart/form-data"
-                            });
-                            resolve(submitData);
-                        } catch (err) {
-                            reject(err)
-                        }
-                    }, 5000);
-                });
-
-                try {
-                    await submitTimeout();
-
-                    setLoading("QR_Target", false);
-                    setLoading("QR_Settings", false);
-                    setLoading("QR_Customizations", false);
-                    if (saveData.actionData?.success === false) {
-                        shopify.toast.show("Something went wrong.", {
-                            isError: true,
-                            duration: 2000
-                        });
-                    } else {
-                        shopify.toast.show("Saved.")
-                    }
-                } catch (err) {
-                    setLoading("QR_Target", false);
-                    setLoading("QR_Settings", false);
-                    setLoading("QR_Customizations", false);
-
-                    console.error("Something went wrong: ", err);
-                    shopify.toast.show("There was an error while creating the QR code.", {
+            case "Product page":
+            case "Add to cart":
+            case "Custom URL":
+                if (!qrDestination) {
+                    shopify.toast.show("Please select a valid product or URL.", {
                         isError: true,
-                        duration: 2000
+                        duration: 2000,
                     });
+                    return null;
                 }
+                break;
+
+            default:
+                if (!convertedForegroundColor || !convertedBackgroundColor || !selectedPattern || !selectedEye) {
+                    shopify.toast.show("Missing customization data.", { isError: true });
+                    return null;
+                }
+        }
+
+        // If we reach here, validation passed
+        shopify.toast.show("Saving... Please do not close the browser.");
+        setLoading("QR_Target", true);
+        setLoading("QR_Settings", true);
+        setLoading("QR_Customizations", true);
+
+        let shopifyResourceUrl = "";
+
+        try {
+            if (file && file instanceof File) {
+                const imageFormData = new FormData();
+                imageFormData.append("filename", file.name);
+                imageFormData.append("mimeType", file.type);
+
+                const imageResponse = await fetch("/api/sign-upload", {
+                    method: "POST",
+                    body: imageFormData
+                });
+
+                const imageData = await imageResponse.json();
+                const target = imageData.data.stagedUploadsCreate.stagedTargets[0];
+
+                const uploadForm = new FormData();
+                target.parameters.forEach(p => uploadForm.append(p.name, p.value));
+                uploadForm.append("file", file);
+
+                const uploadResult = await fetch(target.url, {
+                    method: "POST",
+                    body: uploadForm,
+                });
+
+                if (!uploadResult.ok) throw new Error("Image upload failed");
+
+                shopifyResourceUrl = target.resourceUrl;
+            }
+
+            const currentDate = new Date().toISOString();
+            const formData = new FormData();
+            formData.append("destination", qrDestination);
+            formData.append("endpoint", selected);
+            formData.append("title", qrName);
+            formData.append("fgColor", convertedForegroundColor);
+            formData.append("bgColor", convertedBackgroundColor);
+            formData.append("pattern", selectedPattern);
+            formData.append("eye", selectedEye);
+            formData.append("productId", qrProductId || "");
+            formData.append("variantId", qrVariantId || "");
+            formData.append("createdAt", currentDate);
+            formData.append("expiredAt", currentDate);
+            // This is the "Cheat" - sending the URL string, not the file
+            formData.append("shopifyResourceUrl", shopifyResourceUrl);
+
+            // Submit to Remix action
+            await submit(formData, { method: "post" });
+            shopify.toast.show("Saved.");
+
+        } catch (err) {
+            console.error("Save error: ", err);
+            shopify.toast.show("Error saving QR code.", { isError: true });
+        } finally {
+            setLoading("QR_Target", false);
+            setLoading("QR_Settings", false);
+            setLoading("QR_Customizations", false);
         }
     };
 
