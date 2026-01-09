@@ -408,6 +408,7 @@ export default function StaticQRPage() {
             encType: "multipart/form-data",
           });
           resolve(submitData);
+          navigate("/app");
         } catch (err) {
           reject(err)
         }
@@ -426,7 +427,7 @@ export default function StaticQRPage() {
           duration: 2000
         });
       } else {
-        shopify.toast.show("Deleted.");
+        shopify.toast.show("Saved.");
       }
     } catch (err) {
       setLoading("QR_Target", false);
@@ -446,7 +447,7 @@ export default function StaticQRPage() {
 
   return (
     <Page
-      backAction={{content: 'List', url: '/app/list'}}
+      backAction={{ content: 'List', url: '/app/list' }}
       title={data.title.length >= 28 ? `${data.title.slice(0, 28)}...` : data.title}
       subtitle={dateModifiedString}
       primaryAction={<Button variant="primary" tone="critical" onClick={handleDelete}>Delete</Button>}
