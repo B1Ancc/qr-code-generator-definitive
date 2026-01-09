@@ -1,6 +1,7 @@
 {
   "name": "QR Code Generator Definitive",
-  "version": "25w4mAUb",
+  "author": "REXV",
+  "version": "26w2mJAa",
   "private": true,
   "scripts": {
     "build": "prisma generate && remix vite:build",
@@ -78,7 +79,5 @@
     "@graphql-codegen/client-preset": "4.7.0",
     "@graphql-codegen/typescript-operations": "4.5.0",
     "minimatch": "9.0.5"
-  },
-  "author": "REXV",
-  "version": "25w3mJLa"
+  }
 }
